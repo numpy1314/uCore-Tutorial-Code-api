@@ -4,6 +4,7 @@
 #include "types.h"
 
 #define NPROC (16)
+#define MAX_SYSCALL_NUM (411)
 
 // Saved registers for kernel context switches.
 struct context {
@@ -35,9 +36,8 @@ struct proc {
 	uint64 kstack; // Virtual address of kernel stack
 	struct trapframe *trapframe; // data page for trampoline.S
 	struct context context; // swtch() here to run process
-	/*
-	* LAB1: you may need to add some new fields here
-	*/
+	// Per-process syscall counts, indexed by syscall number.
+	uint64 syscall_counts[MAX_SYSCALL_NUM];
 };
 
 struct proc *curr_proc();
