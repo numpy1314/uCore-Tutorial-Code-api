@@ -12,15 +12,6 @@ extern char boot_stack_top[];
 struct proc *current_proc;
 struct proc idle;
 
-static __attribute__((noreturn)) void todo_api(const char *function)
-{
-	printf("Unimplemented ch3 API: %s\n", function);
-	shutdown();
-	for (;;) {
-		// Keep the noreturn contract if the platform shutdown call returns.
-	}
-}
-
 int threadid()
 {
 	return curr_proc()->pid;
@@ -42,8 +33,17 @@ struct proc *curr_proc()
 // RUNNABLE here; run_all_app() performs application allocation and loading.
 void proc_init(void)
 {
-	// TODO(ch3-api): initialize pool, per-slot resources, idle, and current_proc.
-	todo_api("proc_init");
+	struct proc *p;
+	for (p = pool; p < &pool[NPROC]; p++) {
+		p->state = UNUSED;
+		p->kstack = (uint64)kstack[p - pool];
+		p->ustack = (uint64)ustack[p - pool];
+		p->trapframe = (struct trapframe *)trapframe[p - pool];
+		memset(p->syscall_counts, 0, sizeof(p->syscall_counts));
+	}
+	idle.kstack = (uint64)boot_stack_top;
+	idle.pid = 0;
+	current_proc = &idle;
 }
 
 int allocpid()
@@ -90,8 +90,16 @@ found:
 // storage that remains valid for the complete context switch.
 void scheduler(void)
 {
-	// TODO(ch3-api): select RUNNABLE processes and switch contexts forever.
-	todo_api("scheduler");
+	struct proc *p;
+	for (;;) {
+		for (p = pool; p < &pool[NPROC]; p++) {
+			if (p->state == RUNNABLE) {
+				p->state = RUNNING;
+				current_proc = p;
+				swtch(&idle.context, &p->context);
+			}
+		}
+	}
 }
 
 // Switch to scheduler.  Must hold only p->lock
@@ -119,8 +127,8 @@ void sched(void)
 // eligibility. sched() requires the caller to change state before switching.
 void yield(void)
 {
-	// TODO(ch3-api): preserve eligibility and return control to the scheduler.
-	todo_api("yield");
+	current_proc->state = RUNNABLE;
+	sched();
 }
 
 // Terminate the current process and return control to the scheduler.
@@ -134,7 +142,9 @@ void yield(void)
 // exactly once, and do not restore the exiting process context.
 void exit(int code)
 {
-	(void)code;
-	// TODO(ch3-api): remove the process, record completion, and schedule next.
-	todo_api("exit");
+	struct proc *p = curr_proc();
+	infof("proc %d exit with %d", p->pid, code);
+	p->state = UNUSED;
+	finished();
+	sched();
 }
