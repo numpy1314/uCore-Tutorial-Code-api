@@ -1,3 +1,11 @@
+# uCore ch3 API 实验
+
+本仓库为 uCore 第三章“进程与协作式调度”API 实验基准仓库：
+
+- `ch3-api`：供学生实现的代码骨架；
+- `ch3-api-impl`：与接口契约对应的完整参考实现；
+- [uCore ch3 API 实验文档](./ucore-ch3-api.md)：接口职责、状态转换、约束与验收方法。
+
 # uCore-Tutorial-Code
 
 Course project for THU-OS.
