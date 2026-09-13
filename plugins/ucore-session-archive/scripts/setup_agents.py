@@ -15,6 +15,7 @@ from pathlib import Path
 BUNDLE_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(BUNDLE_ROOT / 'scripts'))
 from course_runtime import RUNTIME_PATH, install_runtime, project_root
+from course_profile import load_profile
 
 from archive_session import CONFIG_RELATIVE_PATHS, SUPPORTED_MODES
 from archive_storage import atomic_write
@@ -22,8 +23,9 @@ from copilot_hook import install_hooks as install_copilot_hooks
 from cursor_hook import install_hooks as install_cursor_hooks
 
 
-PLUGIN_NAME = "ucore-session-archive"
-MARKETPLACE_NAME = "ucore-tutorial-code"
+PROFILE = load_profile(BUNDLE_ROOT)
+PLUGIN_NAME = PROFILE["plugin_name"]
+MARKETPLACE_NAME = PROFILE["marketplace_name"]
 PLUGIN_ID = f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"
 AGENTS = {"codex": "codex", "claude": "claude-code", "cursor": "cursor", "vscode": "vscode-copilot"}
 LABELS = {"codex": "Codex", "claude": "Claude Code", "cursor": "Cursor", "vscode": "VS Code Copilot"}
@@ -45,7 +47,7 @@ class Progress:
         self.completed = []
 
     def header(self, root, target):
-        print(colored("\nuCore · AI 过程记录配置", "1;36"), flush=True)
+        print(colored("\n" + PROFILE["display_name"] + " · AI 过程记录配置", "1;36"), flush=True)
         self.info(f"项目：{root}")
         self.info(f"目标：{target}")
 
@@ -88,6 +90,7 @@ class Progress:
                 "vscode": "VS Code Copilot：打开 .ai/ide/course.code-workspace，在 Output → Copilot Chat Hooks 查看执行情况。",
             }[agent]
             self.info(hint)
+        self.info("课程实验分支：" + "、".join(PROFILE["lab_branches"]))
         self.info("切换实验分支后仍会归档；使用 git agent-plugins 可再次配置。")
 
     def failure(self, error):

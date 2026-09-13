@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "project": "ucore",
+  "display_name": "uCore",
+  "plugin_name": "ucore-session-archive",
+  "marketplace_name": "ucore-tutorial-code",
+  "bootstrap_branch": "main",
+  "lab_branches": {
+    "ch3": ["os/main.c", "Makefile", "bootloader"],
+    "ch4": ["os/main.c", "Makefile", "bootloader"],
+    "ch5": ["os/main.c", "Makefile", "bootloader"],
+    "ch6": ["os/main.c", "Makefile", "bootloader", "nfs"],
+    "ch7": ["os/main.c", "Makefile", "bootloader", "nfs"],
+    "ch8": ["os/main.c", "Makefile", "bootloader", "nfs"]
+  }
+}

@@ -8,13 +8,27 @@ AI 过程记录：启动时默认使用 `auto`，可通过 `python3 course.py --
 
 **Codex 首次使用需要信任 hooks**：安装后，在实验仓库根目录运行 `codex`，输入 `/hooks`，找到 `ucore-session-archive` 的 `Stop` 和 `SessionEnd`，分别审阅并选择 **Trust（信任）**。信任后才会自动归档。使用 VS Code Codex 的同学还需重载窗口并新建会话；更新插件后，如提示 hooks 发生变化，请重新审阅并信任。
 
-工具只在 `main` 分发；安装一次后，切换到 `ch1`–`ch8` 仍会记录。实验分支可运行 `git course logs` 查看日志，运行 `git agent-plugins auto` 再次配置 AI 归档。迁移来源和验证方式见 [记录工具功能说明](docs/course-monitor-report.md)。
+工具只在 `main` 分发；安装一次后，切换到 `ch3`–`ch8` 仍会记录。实验分支可运行 `git course logs` 查看日志，运行 `git agent-plugins auto` 再次配置 AI 归档。迁移来源和验证方式见 [记录工具功能说明](docs/course-monitor-report.md)。
+
+课程配置以 [course-profile.json](course-profile.json) 为准：项目标识、插件与 marketplace 名称、工具分发分支，以及各实验分支必须包含的文件或目录由它统一定义。配置随工具安装到 `.ai/course-tools/`，编辑器 hooks 也保留独立副本。
+
+首次使用依次执行：
+
+```bash
+git switch main
+python3 course.py
+git switch ch3
+```
+
+`main` 分发课程工具；实验分支承载实验源码。安装后通过 `git course` 和 `git agent-plugins` 使用保留在本地的工具，无需每个实验重复安装。
+
+`.ai/events/` 保存文件、命令和 AI 操作等课程事件；`.ai/agent-sessions/` 按归档等级保存会话内容，默认 `messages` 记录用户可见问答；`.ai/submissions/` 保存提交 Hook 生成的增量事件快照。三类记录均可通过普通 `git add` 与实验代码一起提交。配置维护与测试方法见 [课程配置说明](docs/course-profile.md)。
 
 对标 [rCore-Tutorial-v3](https://github.com/rcore-os/rCore-Tutorial-v3/) 的 C 版本代码。
 
 主要参考 [xv6-riscv](https://github.com/mit-pdos/xv6-riscv), [uCore-SMP](https://github.com/TianhuaTao/uCore-SMP)。
 
-实验 lab1-lab5 基准代码分别位于 ch3-ch8　分支下。
+课程实验基准分支为 `ch3`–`ch8`；具体实验安排以课程文档为准。
 
 实验在线文档[uCore-Tutorial-Guide](https://learningos.cn/uCore-Tutorial-Guide/)。
 

@@ -1,6 +1,6 @@
 # 实验过程记录
 
-在 `main` 分支安装一次，之后在同一仓库切换到 `ch1`–`ch8` 都会继续记录。
+在 `main` 分支安装一次，之后在同一仓库切换到 `ch3`–`ch8` 都会继续记录。
 课程工具、VS Code 插件和配置示例只由 `main` 分发，章节分支保持原有实验代码结构。
 
 ## 安装和开始实验
@@ -31,8 +31,8 @@ Windows 打开独立日志窗口；Linux/macOS 在启动入口的终端显示日
 在 VS Code 中信任本实验工作区，保持该窗口打开，然后在另一个终端切换章节：
 
 ```sh
-git switch ch1
-# 如果尚未创建本地章节分支，git switch 会使用 origin/ch1 创建跟踪分支。
+git switch ch3
+# 如果尚未创建本地章节分支，git switch 会使用 origin/ch3 创建跟踪分支。
 git course status
 ```
 
@@ -98,7 +98,7 @@ git course codex
 | `.ai/course-tools/` | 安装后的本地运行文件和课程配置 |
 
 关闭日志窗口后文件仍然保留。请同学们不要改动或删除过程记录，提交时会检查这些记录
-作为考核参考。`main` 和 `ch1`–`ch8` 都允许跟踪 `.ai/agent-sessions/`、`.ai/events/`
+作为考核参考。`main` 和 `ch3`–`ch8` 都允许跟踪 `.ai/agent-sessions/`、`.ai/events/`
 和 `.ai/submissions/` 的全部内容。使用普通 `git add` 将记录与代码一起暂存；
 正常 `git commit` 还会导出并暂存课程事件快照，事件 ID 按当前暂存区去重。
 
