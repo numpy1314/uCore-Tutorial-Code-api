@@ -10,9 +10,9 @@
 | `plugin_name` | 插件名及 `plugins/<plugin_name>` 源目录 |
 | `marketplace_name` | 插件源名称；完整插件 ID 为 `<plugin_name>@<marketplace_name>` |
 | `bootstrap_branch` | 分发和首次安装课程工具的分支，目前为 `main` |
-| `lab_branches` | 实验分支到必要文件或目录的映射，目前为 `ch3`–`ch8` |
+| `lab_branches` | 实验分支到必要文件或目录的映射，当前为 `ch3-api` |
 
-分支集合表示课程验证范围，不限制工具在其他分支运行。实验合同中的路径来自实际分支树；`ch6`–`ch8` 额外检查 `nfs`。它只验证实验结构，内核构建和实验功能仍由各章测试负责。
+分支集合表示课程验证范围，不限制工具在其他分支运行。实验合同中的路径来自实际分支树；当前 `ch3-api` 检查 `os/main.c`、`Makefile` 和 `bootloader`。它只验证实验结构，内核构建和实验功能仍由各章测试负责。
 
 在 `main` 安装后，配置与工具复制到 `.ai/course-tools/`。Cursor/Copilot 的本地 hook 目录还保存配置和加载器，因此切换到没有工具源码的实验分支后，记录、归档与再次配置仍然可用。从分发分支重新安装可刷新配置；已有记录开关、归档模式、日志和自定义 Git 排除规则继续保留。
 

@@ -274,9 +274,10 @@ scope['main']()
         self.assertFalse((self.temp / 'cli.jsonl').exists())
 
     def test_alternate_course_identity_survives_branch_switch(self):
+        branch = next(iter(PROFILE['lab_branches']))
         profile = dict(PROFILE, project='example', display_name='Example Course',
                        plugin_name='example-archive', marketplace_name='example-course',
-                       lab_branches={'ch3': PROFILE['lab_branches']['ch3']})
+                       lab_branches={branch: PROFILE['lab_branches'][branch]})
         (self.root / 'course-profile.json').write_text(json.dumps(profile))
         renamed = self.root / 'plugins' / profile['plugin_name']
         (self.root / PLUGIN_PATH).rename(renamed)
@@ -305,8 +306,11 @@ scope['main']()
         calls = (self.temp / 'cli.jsonl').read_text()
         self.assertIn('example-archive@example-course', calls)
         self.assertNotIn(PROFILE['plugin_name'], calls)
-        self.git('fetch', '--quiet', str(ROOT), 'refs/remotes/origin/ch3:refs/heads/ch3')
-        self.git('switch', 'ch3')
+        ref = f'refs/heads/{branch}'
+        if self.git('show-ref', '--verify', '--quiet', ref, cwd=ROOT, check=False).returncode:
+            ref = f'refs/remotes/origin/{branch}'
+        self.git('fetch', '--quiet', str(ROOT), f'{ref}:refs/heads/{branch}')
+        self.git('switch', branch)
         self.assertFalse((self.root / 'course-profile.json').exists())
         self.assertTrue(json.loads(self.git('course', 'status').stdout)['recordingEnabled'])
         for agent, directory in (('cursor', '.cursor'), ('vscode', '.vscode')):
