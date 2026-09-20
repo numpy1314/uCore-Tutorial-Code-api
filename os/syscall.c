@@ -33,18 +33,17 @@ uint64 sys_sched_yield()
 	return 0;
 }
 
-uint64 sys_gettimeofday(TimeVal *val, int _tz) // TODO: implement sys_gettimeofday in pagetable. (VA to PA)
+// Copy time through the caller's page table; user VA is not a kernel pointer.
+uint64 sys_gettimeofday(TimeVal *val, int _tz)
 {
-	// YOUR CODE
-	val->sec = 0;
-	val->usec = 0;
-
-	/* The code in `ch3` will leads to memory bugs*/
-
-	// uint64 cycle = get_cycle();
-	// val->sec = cycle / CPU_FREQ;
-	// val->usec = (cycle % CPU_FREQ) * 1000000 / CPU_FREQ;
-	return 0;
+	(void)_tz;
+	uint64 cycle = get_cycle();
+	TimeVal now = {
+		.sec = cycle / CPU_FREQ,
+		.usec = (cycle % CPU_FREQ) * 1000000 / CPU_FREQ,
+	};
+	return copyout(curr_proc()->pagetable, (uint64)val, (char *)&now,
+		       sizeof(now));
 }
 
 uint64 sys_sbrk(int n)

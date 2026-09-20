@@ -1,5 +1,5 @@
 .PHONY: clean build user
-all: build_kernel
+all: build
 
 K = os
 
@@ -94,7 +94,7 @@ clean:
 # BOARD
 BOARD		?= qemu
 SBI			?= rustsbi
-BOOTLOADER	:= ./bootloader/rustsbi-qemu.bin
+BOOTLOADER	?= ./bootloader/rustsbi-qemu.bin
 
 QEMU = qemu-system-riscv64
 QEMUOPTS = \
@@ -129,6 +129,8 @@ BASE ?= 0
 
 user:
 	make -C user CHAPTER=$(CHAPTER) BASE=$(BASE)
+	rm -f os/link_app.S os/kernel_app.ld os/initproc.S
 
-test: user run
+test: user
+	$(MAKE) run
 

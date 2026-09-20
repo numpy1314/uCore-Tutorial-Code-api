@@ -1,3 +1,12 @@
+# uCore ch4 API 实验
+
+- `ch4-api`：学生骨架，仅完成 `os/vm.c` 的四个页表函数。
+- `ch4-api-impl`：对应的参考实现。
+- [实验内容、实验要求和 GDB 验收](ucore-ch4-api.md)
+- [报告模板](reports/lab-report.md)
+
+本轮为基础 API 实验，使用 `CHAPTER=4 BASE=1`；原课程 `mmap/munmap/trace` 等拓展不属于本轮范围。请先阅读实验文档中的修改范围与撤销映射补充验收。
+
 # uCore-Tutorial-Code
 
 Course project for THU-OS.
@@ -8,7 +17,7 @@ Course project for THU-OS.
 
 实验 lab1-lab5 基准代码分别位于 ch3-ch8　分支下。
 
-注：为了兼容清华 Git 的需求、避免同学在主分支写代码、明确主分支的功能性，特意单独建了仅包含 README 与 LICENSE 的 master 分支，完成课程实验时请在 clone 仓库后先 push master 分支到清华 Git，然后切到自己开发所需的分支进行后续操作。
+当前仓库默认分支 `main` 是课程导航入口。API 实验请使用 `chN-api` 学生分支，参考实现位于 `chN-api-impl`；原始 `ch1`—`ch8` 分支保留用于对照，无需先推送历史 `master` 分支。
 
 ## 本地开发测试
 

@@ -1,0 +1,41 @@
+{
+  "upstream": "https://github.com/LearningOS/uCore-Tutorial-Test.git",
+  "commit": "1733f460c596b013b1c509ad42afa428640783b0",
+  "patch": "tests-upstream.patch",
+  "patch_sha256": "d553d1307bd8e75060b09c403666435731d053075cee9e54b16396975380e6c6",
+  "changes": [
+    {
+      "files": [
+        "CMakeLists.txt",
+        "Makefile"
+      ],
+      "reason": "Expose TOOLPREFIX/PREFIX so freestanding tests can use riscv64-unknown-elf without musl; specify zicsr/zifencei for modern RISC-V assemblers."
+    },
+    {
+      "files": [
+        "src/ch6b_exec.c"
+      ],
+      "reason": "Terminate the argv pointer array with NULL as required by exec."
+    },
+    {
+      "files": [
+        "src/ch6b_filetest_simple.c"
+      ],
+      "reason": "Assert exact bytes read, terminate the buffer, and preserve strcmp; previous code compared uninitialized bytes after file contents."
+    },
+    {
+      "files": [
+        "src/ch6b_usertest.c",
+        "src/ch7b_usertest.c",
+        "src/ch8b_usertest.c"
+      ],
+      "reason": "Use the existing ch6b_filetest_simple executable instead of nonexistent ch6b_filetest."
+    },
+    {
+      "files": [
+        "src/ch8b_usertest.c"
+      ],
+      "reason": "Remove nonexistent ch8b_mut_phi_din.c entry; retain the correctly named ch8b_mut_phi_din test already present."
+    }
+  ]
+}
