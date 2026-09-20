@@ -29,7 +29,7 @@
         "src/ch7b_usertest.c",
         "src/ch8b_usertest.c"
       ],
-      "reason": "Use the existing ch6b_filetest_simple executable instead of nonexistent ch6b_filetest."
+      "reason": "Both ch6b_filetest.c and ch6b_filetest_simple.c exist in the pinned revision. Select the corrected ch6b_filetest_simple in the base suites because it asserts the read length and file contents; retain both source files. This is a test selection change, not a missing-executable repair."
     },
     {
       "files": [

@@ -40,6 +40,8 @@
 
 本章使用单核、内核执行到显式调度点才切换进程的教学模型，不要求实现 SMP 锁。不能在满/空时原地忙等，也不能增加与既有调度器不匹配的阻塞状态。
 
+配套进程退出代码会释放已经成为僵尸的孤儿所占槽位；存活孩子清除父指针后继续执行。该生命周期处理已提供，学生无需修改 `os/proc.c`。
+
 ## 函数契约
 
 ### `int pipealloc(struct file *f0, struct file *f1)`
@@ -87,7 +89,7 @@ nl -ba os/syscall.c
 # 终端 A：内核入口暂停，GDB 端口 15234
 make gdbserver CHAPTER=7 BASE=1 TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
 # 终端 B
-riscv64-unknown-elf-gdb -nx build/kernel
+gdb-multiarch -nx build/kernel
 ```
 
 ```gdb
@@ -107,7 +109,7 @@ continue
 
 ## 运行与验收
 
-需要 RISC-V GCC/binutils、QEMU、GDB、主机 C 编译器及 CMake。先按仓库公共环境说明准备固定版本的 `user` 目录。运行 `python3 tools/run_lab.py --prepare-only` 准备；该固定测试版本的第七章测试列表也误写了 `ch6b_filetest`，必须使用随仓库提供的教师补丁修正为真实测例名，不能直接运行未修正的上游默认分支。
+需要 RISC-V GCC/binutils、QEMU、GDB、主机 C 编译器及 CMake。先按仓库公共环境说明准备固定版本的 `user` 目录。运行 `python3 tools/run_lab.py --prepare-only` 准备；该固定测试版本同时存在 `ch6b_filetest` 与 `ch6b_filetest_simple`；教师补丁选择经过读取长度和字符串终止修正的 `ch6b_filetest_simple` 作为基础文件读写项。应使用随仓库提供的固定补丁，保持本章套件输入一致。
 
 ```bash
 make user CHAPTER=7 BASE=1 TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
@@ -120,10 +122,32 @@ make run CHAPTER=7 BASE=1 TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
 
 未补全的学生骨架可以编译，但运行至指定函数应报告 `TODO(ch7-api)` 并停止，这是预期的未完成状态。提交时 5 个占位均应消除，并提交报告。参考实现的存在、静态检查通过、基础用例通过分别是不同证据，不能据此宣称所有边界或全部拓展测试均已通过。
 
+## 阶段验收
+
+以下阶段用于安排学习进度和人工验收，沿用本章现有测例与 GDB 流程。每阶段记录“源码检查 / 构建 / 参考动态跟踪 / 自己实现运行”各自的实际结果。
+
+仍有其他目标函数未完成时，可先完成参考跟踪、源码检查和构建；运行到其 TODO 应记录为“受未完成依赖阻塞”，不能记为整章通过，也不能临时复制参考函数、跳过调用或修改测试来完成阶段验收。最终仍须完成全部目标函数及本章原有验收。
+
+| 阶段 | 实现范围 | 检查方式与完成依据 |
+| --- | --- | --- |
+| 对象与端点 | `pipealloc/pipeclose/sys_pipe` | 在参考实现跟踪共享对象、两个 fd 和引用释放；检查自己的申请及回滚路径并构建。 |
+| 数据传输 | `pipewrite/piperead` | 完成五个函数后运行已有 `ch7b_pipetest`，记录读写计数与端点标志；环绕和满缓冲区按源码解释，未触发时不写成已验证。 |
+| 整章验收 | 五个目标函数 | 运行原有 `ch7b_usertest` 与统一 positive 入口，核对每项结果和管道实际输出。 |
+
+## 答辩问题
+
+助教可从下表抽取两个问题，结合本人提交代码和报告进行约 5—8 分钟交流。先说明预期状态变化，再定位源码或已有日志；没有实际触发的分支明确标记为推导。不要求为答辩修改禁止改动的文件或新增测试。实现与参考相同可以是合理结果，评价依据是语义解释、证据对应和对边界的理解。
+
+| 问题 | 建议说明材料 |
+| --- | --- |
+| 父子各关闭一个 fd 时，为什么管道对象可能仍然存活？ | file 引用数、端点标志和最终释放条件。 |
+| 如何区分缓冲区空与满？传输位置越过缓冲区末尾后怎样定位字节？ | nread/nwrite、容量和取模；区分实际观察与推导。 |
+| 写端关闭但仍有未读数据时应怎样返回？sys_pipe 中途失败如何清理？ | 本章返回约定、端点状态、已登记 fd 与对象引用。 |
+
 ## 统一检查入口
 
 
-统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。下列手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
+统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。本文手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
 
 正式修改范围验收必须使用课程发布时保存的完整学生骨架 SHA；默认 `origin/chN-api` 只方便自查，在个人仓库推送后可能移动，不能替代固定基线。文本日志可存 `reports/*.txt` 或 `reports/*.log`，图片不在本轮自动范围白名单内。
 
