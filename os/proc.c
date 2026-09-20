@@ -321,6 +321,9 @@ void exit(int code)
 	for (np = pool; np < &pool[NPROC]; np++) {
 		if (np->parent == p) {
 			np->parent = NULL;
+			// Resources were already released when this child exited.
+			if (np->state == ZOMBIE)
+				np->state = UNUSED;
 		}
 	}
 	sched();
