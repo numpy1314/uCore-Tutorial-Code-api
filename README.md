@@ -1,24 +1,14 @@
-# uCore-Tutorial-Code
-test-20:34
-Course project for THU-OS.
+# uCore ch1 API 实验：裸机 C 内核启动与 BSS 初始化
 
-对标 [rCore-Tutorial-v3](https://github.com/rcore-os/rCore-Tutorial-v3/) 的 C 版本代码。
+先阅读 [ucore-ch1-api.md](ucore-ch1-api.md)，再开始实验。该文档给出函数契约、允许修改范围、GDB 跟踪方法和验收标准。
 
-主要参考 [xv6-riscv](https://github.com/mit-pdos/xv6-riscv), [uCore-SMP](https://github.com/TianhuaTao/uCore-SMP)。
+| 分支 | 用途 |
+| --- | --- |
+| `ch1-api` | 学生骨架：仅本章指定函数体挖空 |
+| `ch1-api-impl` | 完整参考实现：用于阅读、构建和动态跟踪 |
+| `ch1` | 保留的上游章节代码 |
+| `main` | 全课程导航与说明 |
 
-实验 lab1-lab5 基准代码分别位于 ch3-ch8　分支下。
+请在 `ch1-api` 上完成实现，在 [reports/lab-report.md](reports/lab-report.md) 中填写报告。不要在 `main` 上完成章节实验；本仓库不再使用“先推送仅含 README 的 master 分支”的旧流程。
 
-注：为了兼容清华 Git 的需求、避免同学在主分支写代码、明确主分支的功能性，特意单独建了仅包含 README 与 LICENSE 的 master 分支，完成课程实验时请在 clone 仓库后先 push master 分支到清华 Git，然后切到自己开发所需的分支进行后续操作。
-
-## 本地开发测试
-
-在本地开发并测试时，需要拉取 uCore-Tutorial-Test 到 `user` 文件夹。你可以根据网络情况和个人偏好选择下列一项执行：
-
-```bash
-# GitHub 使用 https
-git clone https://github.com/LearningOS/uCore-Tutorial-Test.git user
-# GitHub 使用 ssh
-git clone git@github.com:LearningOS/uCore-Tutorial-Test.git user
-```
-
-注意：`user` 已添加至 `.gitignore`，你无需将其提交，ci 也不会使用它
+本项目是 [rCore-Tutorial-v3](https://github.com/rcore-os/rCore-Tutorial-v3/) 的 C 语言教学实现，参考 [xv6-riscv](https://github.com/mit-pdos/xv6-riscv) 与 [uCore-SMP](https://github.com/TianhuaTao/uCore-SMP)。上游版权与许可证保留。

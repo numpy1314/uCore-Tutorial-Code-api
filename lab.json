@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "chapter": 1,
+  "title": "裸机 C 内核启动与 BSS 初始化",
+  "student_branch": "ch1-api",
+  "reference_branch": "ch1-api-impl",
+  "allowed_code_files": [
+    "os/main.c"
+  ],
+  "functions": [
+    {
+      "file": "os/main.c",
+      "name": "clean_bss"
+    },
+    {
+      "file": "os/main.c",
+      "name": "main"
+    }
+  ],
+  "test": {
+    "base": 1
+  }
+}
