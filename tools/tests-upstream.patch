@@ -1,0 +1,114 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f5a9fac..ab1986d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -15,12 +15,12 @@ set(ASM_DIR asm)
+ set(BIN_DIR bin)
+ 
+ # Toolchain
+-set(PREFIX ${ARCH}-linux-musl-)
++set(PREFIX ${ARCH}-linux-musl- CACHE STRING "Cross compiler prefix")
+ 
+ if (${ARCH} STREQUAL riscv32)
+-    set(CMAKE_C_FLAGS       "-march=rv32imac -mabi=ilp32 -mcmodel=medany")
++    set(CMAKE_C_FLAGS       "-march=rv32imac_zicsr_zifencei -mabi=ilp32 -mcmodel=medany")
+ elseif (${ARCH} STREQUAL riscv64)
+-    set(CMAKE_C_FLAGS       "-march=rv64imac -mabi=lp64 -mcmodel=medany")
++    set(CMAKE_C_FLAGS       "-march=rv64imac_zicsr_zifencei -mabi=lp64 -mcmodel=medany")
+ else()
+     message("Unsupported arch: ${ARCH}")
+ endif ()
+diff --git a/Makefile b/Makefile
+index be632ac..64f1ab6 100644
+--- a/Makefile
++++ b/Makefile
+@@ -7,15 +7,16 @@ app_dir = src
+ elf_dir := build/$(ARCH)
+ bin_dir := build/bin
+ out_dir := target
+-cmake_build_args := -DARCH=$(ARCH) -DCHAPTER=$(CHAPTER)
++TOOLPREFIX ?= $(ARCH)-linux-musl-
++cmake_build_args := -DARCH=$(ARCH) -DCHAPTER=$(CHAPTER) -DPREFIX=$(TOOLPREFIX)
+ ifeq ($(MODE), release)
+ cmake_build_args += -DCMAKE_BUILD_TYPE=Release
+ else ifeq ($(MODE), debug)
+ cmake_build_args += -DCMAKE_BUILD_TYPE=Debug
+ endif
+ 
+-OBJCOPY := $(ARCH)-linux-musl-objcopy
+-OBJDUMP := $(ARCH)-linux-musl-objdump
++OBJCOPY := $(TOOLPREFIX)objcopy
++OBJDUMP := $(TOOLPREFIX)objdump
+ CP := cp
+ CH_TESTS :=  
+ 
+diff --git a/src/ch6b_exec.c b/src/ch6b_exec.c
+index 1a1d9c6..b67cf35 100644
+--- a/src/ch6b_exec.c
++++ b/src/ch6b_exec.c
+@@ -5,7 +5,7 @@
+ int main()
+ {
+ 	char *_argv[] = {
+-		"(*o*)", "(>.<)", "(O.O)", "(QwQ)", "orz", "没有了呀"
++		"(*o*)", "(>.<)", "(O.O)", "(QwQ)", "orz", "没有了呀", NULL
+ 	};
+ 	exec("ch6b_args", _argv);
+ 	return 0;
+diff --git a/src/ch6b_filetest_simple.c b/src/ch6b_filetest_simple.c
+index 062cecf..a27e982 100644
+--- a/src/ch6b_filetest_simple.c
++++ b/src/ch6b_filetest_simple.c
+@@ -15,7 +15,9 @@ int main()
+ 	fd = open(filea, O_RDONLY);
+ 	assert(fd > 0);
+ 	char buf[16];
+-	read(fd, buf, 16);
++	int nread = read(fd, buf, sizeof(buf) - 1);
++	assert_eq(nread, strlen(s));
++	buf[nread] = '\0';
+ 	close(fd);
+ 	assert(strcmp(s, buf) == 0);
+ 	puts("file_test passed!");
+diff --git a/src/ch6b_usertest.c b/src/ch6b_usertest.c
+index cdd9fc8..1cb5f3a 100644
+--- a/src/ch6b_usertest.c
++++ b/src/ch6b_usertest.c
+@@ -11,7 +11,7 @@ const char *TESTS[] = {
+ 	"ch3b_sleep1\0",      "ch3b_yield0\0",	  "ch3b_yield1\0",
+ 	"ch3b_yield2\0",      "ch5b_getpid\0",	  "ch5b_forktest0\0",
+ 	"ch5b_forktest1\0",   "ch5b_forktest2\0", "ch5b_exit\0",
+-	"ch6b_filetest\0",    "ch6b_exec\0",
++	"ch6b_filetest_simple\0",    "ch6b_exec\0",
+ };
+ 
+ int main()
+diff --git a/src/ch7b_usertest.c b/src/ch7b_usertest.c
+index 1f634d4..8bfc7c8 100644
+--- a/src/ch7b_usertest.c
++++ b/src/ch7b_usertest.c
+@@ -10,7 +10,7 @@ const char *TESTS[] = {
+ 	"ch3b_sleep1\0",      "ch3b_yield0\0",	  "ch3b_yield1\0",
+ 	"ch3b_yield2\0",      "ch5b_exit\0",	  "ch5b_getpid\0",
+ 	"ch5b_forktest0\0",   "ch5b_forktest1\0", "ch5b_forktest2\0",
+-	"ch5b_exit\0",	      "ch6b_filetest\0",  "ch6b_exec\0",
++	"ch5b_exit\0",	      "ch6b_filetest_simple\0",  "ch6b_exec\0",
+ 	"ch7b_pipetest\0",
+ };
+ 
+diff --git a/src/ch8b_usertest.c b/src/ch8b_usertest.c
+index 1cce5ce..f088c38 100644
+--- a/src/ch8b_usertest.c
++++ b/src/ch8b_usertest.c
+@@ -10,9 +10,9 @@ const char *TESTS[] = {
+ 	"ch3b_sleep1\0",        "ch3b_yield0\0",      "ch3b_yield1\0",
+ 	"ch3b_yield2\0",        "ch5b_getpid\0",      "ch5b_forktest0\0",
+ 	"ch5b_forktest1\0",     "ch5b_forktest2\0",   "ch5b_exit\0",
+-	"ch6b_filetest\0",      "ch6b_exec\0",        "ch7b_pipetest\0",
++	"ch6b_filetest_simple\0",      "ch6b_exec\0",        "ch7b_pipetest\0",
+ 	"ch8b_mpsc_sem\0",
+-	"ch8b_mut_phi_din.c",   "ch8b_mut_race\0",    "ch8b_sync_sem\0",
++	   "ch8b_mut_race\0",    "ch8b_sync_sem\0",
+ 	"ch8b_test_condvar\0",  "ch8b_threads_arg\0", "ch8b_threads\0",      
+ 	"ch8b_spin_mut_race\0", "ch8b_mut_phi_din\0",
+ };

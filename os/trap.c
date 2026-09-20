@@ -18,39 +18,10 @@ void trap_init(void)
 //
 void usertrap(struct trapframe *trapframe)
 {
-	if ((r_sstatus() & SSTATUS_SPP) != 0)
-		panic("usertrap: not from user mode");
-
-	uint64 cause = r_scause();
-	if (cause == UserEnvCall) {
-		trapframe->epc += 4;
-		syscall();
-		return usertrapret(trapframe, (uint64)boot_stack_top);
-	}
-	switch (cause) {
-	case StoreMisaligned:
-	case StorePageFault:
-	case LoadMisaligned:
-	case LoadPageFault:
-	case InstructionMisaligned:
-	case InstructionPageFault:
-		errorf("%d in application, bad addr = %p, bad instruction = %p, core "
-		       "dumped.",
-		       cause, r_stval(), trapframe->epc);
-		break;
-	case IllegalInstruction:
-		errorf("IllegalInstruction in application, epc = %p, core dumped.",
-		       trapframe->epc);
-		break;
-	default:
-		errorf("unknown trap: %p, stval = %p sepc = %p", r_scause(),
-		       r_stval(), r_sepc());
-		break;
-	}
-	infof("switch to next app");
-	run_next_app();
-	printf("ALL DONE\n");
+	panic("TODO(ch2-api): usertrap");
 	shutdown();
+	for (;;) {
+	}
 }
 
 //

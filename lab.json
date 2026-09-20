@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "chapter": 2,
+  "title": "用户态系统调用与异常处理",
+  "student_branch": "ch2-api",
+  "reference_branch": "ch2-api-impl",
+  "allowed_code_files": [
+    "os/syscall.c",
+    "os/trap.c"
+  ],
+  "functions": [
+    {
+      "file": "os/syscall.c",
+      "name": "syscall"
+    },
+    {
+      "file": "os/trap.c",
+      "name": "usertrap"
+    }
+  ],
+  "test": {
+    "base": 1
+  }
+}

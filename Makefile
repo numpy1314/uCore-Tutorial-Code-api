@@ -1,5 +1,5 @@
 .PHONY: clean build user
-all: build_kernel
+all: build
 
 LOG ?= error
 
@@ -94,7 +94,7 @@ clean:
 # BOARD
 BOARD		?= qemu
 SBI			?= rustsbi
-BOOTLOADER	:= ./bootloader/rustsbi-qemu.bin
+BOOTLOADER	?= ./bootloader/rustsbi-qemu.bin
 
 QEMU = qemu-system-riscv64
 QEMUOPTS = \
@@ -128,5 +128,6 @@ CHAPTER ?= $(shell git rev-parse --abbrev-ref HEAD | grep -oP 'ch\K[0-9]')
 user:
 	make -C $(U) CHAPTER=$(CHAPTER) BASE=$(BASE)
 
-test: user run
+test: user
+	$(MAKE) run
 
