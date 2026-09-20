@@ -98,7 +98,7 @@ clean:
 # BOARD
 BOARD		?= qemu
 SBI			?= rustsbi
-BOOTLOADER	:= ./bootloader/rustsbi-qemu.bin
+BOOTLOADER	?= ./bootloader/rustsbi-qemu.bin
 
 QEMU = qemu-system-riscv64
 QEMUOPTS = \
@@ -131,6 +131,8 @@ CHAPTER ?= $(shell git rev-parse --abbrev-ref HEAD | grep -oP 'ch\K[0-9]')
 
 user:
 	make -C user CHAPTER=$(CHAPTER) BASE=$(BASE)
+	rm -f os/link_app.S os/kernel_app.ld os/initproc.S
 
-test: user run
+test: user
+	$(MAKE) run
 
