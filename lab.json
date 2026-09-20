@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "chapter": 5,
+  "title": "进程生命周期",
+  "student_branch": "ch5-api",
+  "reference_branch": "ch5-api-impl",
+  "allowed_code_files": [
+    "os/proc.c"
+  ],
+  "functions": [
+    {
+      "file": "os/proc.c",
+      "name": "allocproc"
+    },
+    {
+      "file": "os/proc.c",
+      "name": "freeproc"
+    },
+    {
+      "file": "os/proc.c",
+      "name": "fork"
+    },
+    {
+      "file": "os/proc.c",
+      "name": "exec"
+    },
+    {
+      "file": "os/proc.c",
+      "name": "wait"
+    },
+    {
+      "file": "os/proc.c",
+      "name": "exit"
+    }
+  ],
+  "test": {
+    "base": 1
+  }
+}

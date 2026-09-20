@@ -19,3 +19,11 @@ kernel_app.ld
 !/.ai/events/**
 !/.ai/submissions/
 !/.ai/submissions/**
+
+# API validation output (not student source).
+/build/
+
+__pycache__/
+*.py[cod]
+
+/artifacts/

@@ -67,31 +67,8 @@ void add_task(struct proc *p)
 // If there are no free procs, or a memory allocation fails, return 0.
 struct proc *allocproc()
 {
-	struct proc *p;
-	for (p = pool; p < &pool[NPROC]; p++) {
-		if (p->state == UNUSED) {
-			goto found;
-		}
-	}
-	return 0;
-
-found:
-	// init proc
-	p->pid = allocpid();
-	p->state = USED;
-	p->ustack = 0;
-	p->max_page = 0;
-	p->parent = NULL;
-	p->exit_code = 0;
-	p->pagetable = uvmcreate((uint64)p->trapframe);
-	p->program_brk = 0;
-        p->heap_bottom = 0;
-	memset(&p->context, 0, sizeof(p->context));
-	memset((void *)p->kstack, 0, KSTACK_SIZE);
-	memset((void *)p->trapframe, 0, TRAP_PAGE_SIZE);
-	p->context.ra = (uint64)usertrapret;
-	p->context.sp = p->kstack + KSTACK_SIZE;
-	return p;
+	panic("TODO(ch5-api): allocproc");
+	for (;;) {}
 }
 
 // Scheduler never returns.  It loops, doing:
@@ -161,97 +138,33 @@ void freepagetable(pagetable_t pagetable, uint64 max_page)
 
 void freeproc(struct proc *p)
 {
-	if (p->pagetable)
-		freepagetable(p->pagetable, p->max_page);
-	p->pagetable = 0;
-	p->state = UNUSED;
+	panic("TODO(ch5-api): freeproc");
+	for (;;) {}
 }
 
 int fork()
 {
-	struct proc *np;
-	struct proc *p = curr_proc();
-	// Allocate process.
-	if ((np = allocproc()) == 0) {
-		panic("allocproc\n");
-	}
-	// Copy user memory from parent to child.
-	if (uvmcopy(p->pagetable, np->pagetable, p->max_page) < 0) {
-		panic("uvmcopy\n");
-	}
-	np->max_page = p->max_page;
-	// copy saved user registers.
-	*(np->trapframe) = *(p->trapframe);
-	// Cause fork to return 0 in the child.
-	np->trapframe->a0 = 0;
-	np->parent = p;
-	np->state = RUNNABLE;
-	add_task(np);
-	return np->pid;
+	panic("TODO(ch5-api): fork");
+	for (;;) {}
 }
 
 int exec(char *name)
 {
-	int id = get_id_by_name(name);
-	if (id < 0)
-		return -1;
-	struct proc *p = curr_proc();
-	uvmunmap(p->pagetable, 0, p->max_page, 1);
-	p->max_page = 0;
-	loader(id, p);
-	return 0;
+	panic("TODO(ch5-api): exec");
+	for (;;) {}
 }
 
 int wait(int pid, int *code)
 {
-	struct proc *np;
-	int havekids;
-	struct proc *p = curr_proc();
-
-	for (;;) {
-		// Scan through table looking for exited children.
-		havekids = 0;
-		for (np = pool; np < &pool[NPROC]; np++) {
-			if (np->state != UNUSED && np->parent == p &&
-			    (pid <= 0 || np->pid == pid)) {
-				havekids = 1;
-				if (np->state == ZOMBIE) {
-					// Found one.
-					np->state = UNUSED;
-					pid = np->pid;
-					*code = np->exit_code;
-					return pid;
-				}
-			}
-		}
-		if (!havekids) {
-			return -1;
-		}
-		p->state = RUNNABLE;
-		add_task(p);
-		sched();
-	}
+	panic("TODO(ch5-api): wait");
+	for (;;) {}
 }
 
 // Exit the current process.
 void exit(int code)
 {
-	struct proc *p = curr_proc();
-	p->exit_code = code;
-	debugf("proc %d exit with %d\n", p->pid, code);
-	freeproc(p);
-	if (p->parent != NULL) {
-		// Parent should `wait`
-		p->state = ZOMBIE;
-	}
-	// Set the `parent` of all children to NULL
-	struct proc *np;
-	for (np = pool; np < &pool[NPROC]; np++) {
-		if (np->parent == p) {
-			np->parent = NULL;
-		}
-	}
-	sched();
+	panic("TODO(ch5-api): exit");
+	for (;;) {}
 }
 
 // Grow or shrink user memory by n bytes.
