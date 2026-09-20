@@ -1,6 +1,6 @@
 # uCore API 实验验证记录
 
-本轮完成 8 章、37 个目标函数的 API 挖空与配套教学文档。8 个参考实现均通过本轮选定的基础运行验收，8 个学生骨架均编译成功并在本章 TODO 处按预期终止。所有章节取得了 GDB 动态证据；其覆盖范围如下，不能解释为 37 个函数及全部分支均已动态覆盖。
+首次归档完成 8 章、37 个目标函数的 API 挖空与配套教学文档。以下原始归档记录保持对应当时版本；最新教师基线维护与回归见本文后面的专节。8 个参考实现均通过本轮选定的基础运行验收，8 个学生骨架均编译成功并在本章 TODO 处按预期终止。所有章节取得了 GDB 动态证据；其覆盖范围如下，不能解释为 37 个函数及全部分支均已动态覆盖。
 
 完整原始证据见 [evidence.zip](validation/evidence.zip)。归档包含 175 个文件，SHA-256 为 `197275357932379d320b0c36c52715639aa9e40e9afaa4af57e72c8c2c875825`，内部 `SHA256SUMS` 可逐项核验。
 
@@ -70,7 +70,7 @@
 
 旧的仓库内 RustSBI 镜像在本轮 QEMU 环境中未正常进入预期运行，出现超时；改用 OpenSBI 1.3 后完成上述验收。原始控制台与部分指令跟踪保存在 `historical/firmware-investigation/`，没有把这段失败归为学生代码失败，也未证明旧固件在所有环境都不可用。
 
-教师测试修正针对可复现的输入与构建问题：允许裸机交叉工具链前缀并显式声明 `zicsr/zifencei`；为 `ch6b_exec` 的 argv 添加空指针终止；文件测例检查实际读取长度并补字符串终止，避免比较未初始化字节；修正第 6—8 章汇总里不存在的文件测例名；去掉第 8 章错误的 `.c` 程序名重复项，保留有效程序。原有文件内容比较和有效测试均保留，没有用删掉有效失败测例来取得通过。
+教师测试修正针对可复现的输入与构建问题：允许裸机交叉工具链前缀并显式声明 `zicsr/zifencei`；为 `ch6b_exec` 的 argv 添加空指针终止；文件测例检查实际读取长度并补字符串终止，避免比较未初始化字节；第 6—8 章基础汇总选择修正后的 `ch6b_filetest_simple` 执行读取长度和文件内容断言；`ch6b_filetest.c` 与 `ch6b_filetest_simple.c` 在固定提交中都存在，两个源码均保留，前者不在当前默认套件内。这项调整是验收用例的选择，不是修复不存在的文件名。第 8 章去掉错误的 `.c` 程序名重复项，保留正确命名的程序。历史归档中的工具说明按归档时内容保留，关于该用例选择的解释以当前说明及 `tools/tests-upstream.json` 为准。
 
 部分 GDB 日志包含缺少可选 Python 模块的安装警告；普通断点、寄存器、调用栈与记录的页表命令仍实际执行成功，警告保留原样。每章 smoke 只验证表中断点可达，不能替代学生逐函数的静态分析与动态跟踪报告。
 
@@ -93,17 +93,34 @@
 
 本轮范围不包含原始课程仍留空的额外映射系统调用、spawn/优先级调度、硬链接、死锁检测等扩展，也不证明全部错误输入、资源耗尽、SMP 或各函数所有路径。归档没有包含用户库构建目录、内核/磁盘二进制与大体积完整指令跟踪；保留了重建输入、原始日志和二进制哈希。
 
+## 教师基线维护与回归
+
+本次维护修正第六章系统调用的 fd 上界判断，并补齐第五章至第八章的孤儿僵尸槽位回收；同步任务契约、固定测试说明和调试命令。各章增加三个阶段检查点、三道公开答辩问题及对应报告记录，仍使用原有 37 个实现目标和测试集合。
+
+运行器看到套件完成标记后继续收集最多一秒的输出，避免立即停止 QEMU 截断结束诊断。本轮初次第六章运行已完成全部子项，但结束日志被截断而误判；修正收尾时机后，同一内核二进制通过原有结果检查。未放宽 panic 或子测试退出码的判定。
+
+| 章节 | 参考基础套件 | 未填写骨架检查 |
+| --- | --- | --- |
+| 5 | PASS，12 项 | PASS，命中本章 TODO |
+| 6 | PASS，14 项 | PASS，命中本章 TODO |
+| 7 | PASS，16 次执行 | PASS，命中本章 TODO |
+| 8 | PASS，23 项 | PASS，命中本章 TODO |
+
+另外，现有 50 项工具回归通过。按任务书的阶段命令，已有 `ch5b_forktest0`（LOG=info）与 `ch8b_mut_race` 均实际运行并完成各自断言。第 1—4 章内核源码未变，沿用首次运行记录；本次没有为各接口增加新的行为或错误实现区分测试。
+
+本轮记录的构建源码 `os` 子树、内核哈希与对应发布提交见 [维护回归摘要](validation/teaching-update.json)。原始 `evidence.zip` 仍对应首次归档，不能将其中旧运行当成本次维护的执行记录。现有基础测试通过不等于新增回收分支或所有边界均已被动态覆盖；相关修复还经源码复核。
+
 ## 远端发布版本
 
-以下是 `numpy1314/uCore-Tutorial-Code-api` 当前的章节发布版本。内核源码、测试、构建脚本和实验规则与既有验证版本一致。完整 SHA 与树 ID 见 [发布清单](validation/published-branches.json)。课程分析与正式范围检查应使用下表学生骨架的完整 SHA。
+以下是 `numpy1314/uCore-Tutorial-Code-api` 当前的章节发布版本。第 1—4 章内核源码沿用既有验证版本；第 5—8 章包含下述教师基线维护。测试集合和构建入口保持原有设置。完整 SHA 与树 ID 见 [发布清单](validation/published-branches.json)。课程分析与正式范围检查应使用下表学生骨架的完整 SHA。
 
 | 章 | 学生骨架提交 | 参考实现提交 |
 | --- | --- | --- |
-| 1 | [13e2726f8003121c65170f9ba2d7d1b6136b78d1](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/13e2726f8003121c65170f9ba2d7d1b6136b78d1) | [536a0f82c7a30521ba2f28b6da13b7f05735e864](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/536a0f82c7a30521ba2f28b6da13b7f05735e864) |
-| 2 | [259de5303395159cc057575429739efa43b263cc](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/259de5303395159cc057575429739efa43b263cc) | [940e471bbb066fc9bcd9cdc3ba39a95ce3b54046](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/940e471bbb066fc9bcd9cdc3ba39a95ce3b54046) |
-| 3 | [cad4c379728aefefbe82ed239560d2c724929592](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/cad4c379728aefefbe82ed239560d2c724929592) | [13f82ce4b642bff1d9bf46a7581f9c37705f4083](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/13f82ce4b642bff1d9bf46a7581f9c37705f4083) |
-| 4 | [d390888120c3c122bb60f1a31e5a1f98afcdb4e1](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/d390888120c3c122bb60f1a31e5a1f98afcdb4e1) | [6e91a31a6d6c3ffadefab6c88a57349a3107c387](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/6e91a31a6d6c3ffadefab6c88a57349a3107c387) |
-| 5 | [1c38f7adcc614e501a8d856eb4d4089787896dd6](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/1c38f7adcc614e501a8d856eb4d4089787896dd6) | [8d22754749e3288be85eaf5f99a10e06c4c6bc84](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/8d22754749e3288be85eaf5f99a10e06c4c6bc84) |
-| 6 | [df51954015d7571f4ec2ea3147782df825cdeb23](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/df51954015d7571f4ec2ea3147782df825cdeb23) | [4df5e1218d431d16bea04cf93712e0ded5f786be](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/4df5e1218d431d16bea04cf93712e0ded5f786be) |
-| 7 | [b757769f5f1d80ce583f9c691ab0d584149c9a46](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/b757769f5f1d80ce583f9c691ab0d584149c9a46) | [c921ad7ccc768640de39ff29b27d66f69f7e9fc1](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/c921ad7ccc768640de39ff29b27d66f69f7e9fc1) |
-| 8 | [ae5fd460499f9c771435b780cd3eaa4cebce732a](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/ae5fd460499f9c771435b780cd3eaa4cebce732a) | [c0b64d4421a30a085f6b9739d96fb7bcfb7504c2](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/c0b64d4421a30a085f6b9739d96fb7bcfb7504c2) |
+| 1 | [b68b0afa424f4c1696330392d7df77de3a2b2c2e](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/b68b0afa424f4c1696330392d7df77de3a2b2c2e) | [cda429eaebca2b673eeeec65b3eb159ff96e4887](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/cda429eaebca2b673eeeec65b3eb159ff96e4887) |
+| 2 | [dd3bdf25d99585eff4a7613463145c0c3153755d](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/dd3bdf25d99585eff4a7613463145c0c3153755d) | [a9e69b4f025ba5f7361de0cb9377062785f563e8](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/a9e69b4f025ba5f7361de0cb9377062785f563e8) |
+| 3 | [e362ab38cfb218d2b83645257599febb40eb4a0e](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/e362ab38cfb218d2b83645257599febb40eb4a0e) | [7d3b1ed6ad8bf4f011493dcc625ab8a6d6360779](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/7d3b1ed6ad8bf4f011493dcc625ab8a6d6360779) |
+| 4 | [9df167de9ff12582fd06296ff0bcbf48fd01e32b](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/9df167de9ff12582fd06296ff0bcbf48fd01e32b) | [e92fd83a00b67b69e614b300228ce2a568dfe228](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/e92fd83a00b67b69e614b300228ce2a568dfe228) |
+| 5 | [309f1311439f35a8983c071daad6fdc438ecce4e](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/309f1311439f35a8983c071daad6fdc438ecce4e) | [b5eb7cd8fe19198987d06eeb67d613c19c5fafcd](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/b5eb7cd8fe19198987d06eeb67d613c19c5fafcd) |
+| 6 | [511ff949c4314b66509e6fc0a0fcfc72a2de1045](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/511ff949c4314b66509e6fc0a0fcfc72a2de1045) | [22f8af4264470dbd1c266be47599fb1c7cac7724](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/22f8af4264470dbd1c266be47599fb1c7cac7724) |
+| 7 | [1fbb75f3a0e084777aab988c9e930b412ed2d531](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/1fbb75f3a0e084777aab988c9e930b412ed2d531) | [87dfe49c16b572c0fb722d165c3574aa855df8d9](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/87dfe49c16b572c0fb722d165c3574aa855df8d9) |
+| 8 | [4e5aa9ebf52bc8a9e3b5e85b37ba64fd07511f5e](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/4e5aa9ebf52bc8a9e3b5e85b37ba64fd07511f5e) | [39e47b69bb6481f22f3e53b5c6ce178975d531cc](https://github.com/numpy1314/uCore-Tutorial-Code-api/commit/39e47b69bb6481f22f3e53b5c6ce178975d531cc) |

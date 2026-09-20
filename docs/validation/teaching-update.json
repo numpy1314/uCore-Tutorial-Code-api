@@ -1,0 +1,108 @@
+{
+  "recorded_at_utc": "2026-09-20T16:47:03.067966+00:00",
+  "repository": "numpy1314/uCore-Tutorial-Code-api",
+  "test_commit": "1733f460c596b013b1c509ad42afa428640783b0",
+  "test_patch_sha256": "d553d1307bd8e75060b09c403666435731d053075cee9e54b16396975380e6c6",
+  "existing_test_sources_unchanged": true,
+  "tool_regressions": {
+    "count": 50,
+    "status": "PASS"
+  },
+  "kernel_runs": [
+    {
+      "branch": "ch5-api",
+      "mode": "negative",
+      "exit_code": 0,
+      "status": "PASS",
+      "os_tree": "1139023342843755791e21dd827a93bce7ee1d74",
+      "kernel_sha256": "e254e3856f32bafc3de364ff60271111878efdd59c6de09f012c77c2bfd7bee4",
+      "error": null,
+      "published_commit": "309f1311439f35a8983c071daad6fdc438ecce4e"
+    },
+    {
+      "branch": "ch5-api-impl",
+      "mode": "positive",
+      "exit_code": 0,
+      "status": "PASS",
+      "os_tree": "141804e3ceee0a663382462b5eec439300fdee89",
+      "kernel_sha256": "8c6d1c5a152ea7e54f8fd2e49a5848c458890bec13315392a876b72fe3751f54",
+      "error": null,
+      "published_commit": "b5eb7cd8fe19198987d06eeb67d613c19c5fafcd"
+    },
+    {
+      "branch": "ch6-api",
+      "mode": "negative",
+      "exit_code": 0,
+      "status": "PASS",
+      "os_tree": "008d22e1825e7fbcd2b83e6548ee7159ae3b32e8",
+      "kernel_sha256": "fb922fd928bb88d9eb6bb22be71bf4acaf9b866d5cf5a15fcbbed9f12225a118",
+      "error": null,
+      "published_commit": "511ff949c4314b66509e6fc0a0fcfc72a2de1045"
+    },
+    {
+      "branch": "ch6-api-impl",
+      "mode": "positive",
+      "exit_code": 0,
+      "status": "PASS",
+      "os_tree": "c3cbcee6d91f68b27f3aea955db2fd4b8fef7874",
+      "kernel_sha256": "45599566610c723cdc7696633f76e834ded716776a2671f28eca320549ab6afd",
+      "error": null,
+      "published_commit": "22f8af4264470dbd1c266be47599fb1c7cac7724"
+    },
+    {
+      "branch": "ch7-api",
+      "mode": "negative",
+      "exit_code": 0,
+      "status": "PASS",
+      "os_tree": "0375b2109591831324e202bf6188e3bed6055589",
+      "kernel_sha256": "0f6260bd492be17b85d46e4861f2c9a422929d85534c3c3190da4d8a509b031a",
+      "error": null,
+      "published_commit": "1fbb75f3a0e084777aab988c9e930b412ed2d531"
+    },
+    {
+      "branch": "ch7-api-impl",
+      "mode": "positive",
+      "exit_code": 0,
+      "status": "PASS",
+      "os_tree": "b2d26b0b3176e18c07e3d681ee9c3f7140d32916",
+      "kernel_sha256": "e4873cdc108fa862e8a15764220bc9ae11e1073de6c05f8d0e2941ca801ea9e2",
+      "error": null,
+      "published_commit": "87dfe49c16b572c0fb722d165c3574aa855df8d9"
+    },
+    {
+      "branch": "ch8-api",
+      "mode": "negative",
+      "exit_code": 0,
+      "status": "PASS",
+      "os_tree": "b9094904d72815c393e4e909a4e7941ca6ae4746",
+      "kernel_sha256": "0e8c3fd3fd218674f85b684f45bf4c8b61488f2db74b9f9b59bae83e6aa5349a",
+      "error": null,
+      "published_commit": "4e5aa9ebf52bc8a9e3b5e85b37ba64fd07511f5e"
+    },
+    {
+      "branch": "ch8-api-impl",
+      "mode": "positive",
+      "exit_code": 0,
+      "status": "PASS",
+      "os_tree": "d860e02c209345c10ebad244c0464ec00cb55aea",
+      "kernel_sha256": "e96fd1f97179e45a68485cdafee1525a63066d14d1ca7186890dcf95072f8fda",
+      "error": null,
+      "published_commit": "39e47b69bb6481f22f3e53b5c6ce178975d531cc"
+    }
+  ],
+  "stage_commands": [
+    {
+      "chapter": 5,
+      "existing_application": "ch5b_forktest0",
+      "status": "PASS",
+      "marker": "forktest0 pass."
+    },
+    {
+      "chapter": 8,
+      "existing_application": "ch8b_mut_race",
+      "status": "PASS",
+      "marker": "race adder blocking mutex passed!"
+    }
+  ],
+  "limits": "Existing base suites and skeleton checks were rerun; no new behavioral or mutation tests were added. Source trees, rather than local/remote commit identity, bind the recorded builds to these published branches."
+}
