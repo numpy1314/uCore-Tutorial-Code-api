@@ -59,7 +59,7 @@
 
 ### 5. `int wait(int pid, int *code)`
 
-**职责与输入：** 等待当前进程的直接子进程；`pid > 0` 指定子 PID，`pid <= 0` 接受任意直接子进程。`code` 是 `sys_wait` 完成用户地址转换后提供的有效、可写内核地址，不是未经转换的用户虚拟地址；本章接口不接受空指针。
+**职责与输入：** 等待当前进程的直接子进程；`pid > 0` 指定子 PID，`pid <= 0` 接受任意直接子进程。`code` 由 `sys_wait` 完成用户地址转换后提供；成功回收孩子时必须指向有效、可写的内核地址。没有匹配孩子时不写退出码，已有测例的 `wait(0)` 因而可返回 -1。接口不支持在成功回收时以空指针忽略退出码。
 
 **输出：** 回收到匹配的 `ZOMBIE` 时返回其 PID，并写入退出码；没有匹配子进程时返回 `-1` 且不写退出码。匹配的孩子存在但尚未退出时不得提前报告成功或返回 `-1`。
 
@@ -71,7 +71,7 @@
 
 **输出：** 不再返回原用户程序；通过 `sched` 切换到调度器。函数签名沿用已有 `void`，系统调用包装另有 noreturn 约定。
 
-**副作用与边界：** 先记录退出码，再 `freeproc` 回收用户内存。存在父进程时设为 `ZOMBIE` 保留身份/退出码；无父进程时保持 `UNUSED`。遍历孩子将其 `parent` 置空，沿用本章不交给 init 进程收养的简化策略；这也不补做已经退出的孤儿回收。退出进程不再入队。`sched` 前状态不能为 `RUNNING`，不得返回已释放的用户地址空间。
+**副作用与边界：** 先记录退出码，再 `freeproc` 回收用户内存。存在父进程时设为 `ZOMBIE` 保留身份/退出码；无父进程时保持 `UNUSED`。遍历孩子将其 `parent` 置空；已经是 `ZOMBIE` 的孩子，其用户资源已在退出时释放，此时只将槽位改为 `UNUSED`，不能再次释放页表。仍存活的孩子继续执行，日后退出时因没有父进程而直接释放槽位。本章不将孤儿交给 init 进程收养。退出进程不再入队。`sched` 前状态不能为 `RUNNING`，不得返回已释放的用户地址空间。
 
 ## 源码阅读与 GDB 跟踪
 
@@ -83,14 +83,14 @@ git rev-parse HEAD
 nl -ba os/proc.c
 make user CHAPTER=5 BASE=1 TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
 make clean
-make build CHAPTER=5 BASE=1 INIT_PROC=ch5b_usertest
-make gdbserver CHAPTER=5 BASE=1 INIT_PROC=ch5b_usertest TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
+make build CHAPTER=5 BASE=1 INIT_PROC=ch5b_usertest LOG=info
+make gdbserver CHAPTER=5 BASE=1 INIT_PROC=ch5b_usertest TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default LOG=info
 ```
 
 另一个终端启动 GDB；`-nx` 避免 `.gdbinit` 自动连接同一端口：
 
 ```bash
-riscv64-unknown-elf-gdb -nx build/kernel
+gdb-multiarch -nx build/kernel
 ```
 
 ```gdb
@@ -119,12 +119,12 @@ GDB `finish` 不适用于永不返回的 `exit`。源码单步不自动证明返
 
 ## 运行与验收
 
-按仓库环境准备说明准备工具链和 `user`。内核使用 `riscv64-unknown-elf-*`，用户库原构建使用 `riscv64-linux-musl-*`，QEMU 为 `qemu-system-riscv64`。从本章根目录执行，两个 make 分开确保用户程序先完成再打包：
+按仓库环境准备说明准备工具链和 `user`。内核使用 `riscv64-unknown-elf-*`，用户库原构建使用 `riscv64-linux-musl-*`，QEMU 为 `qemu-system-riscv64`。从本章根目录执行，两个 make 分开确保用户程序先完成再打包。手动命令显式使用 `LOG=info`，与统一运行入口保持一致；更换日志级别后先清理构建：
 
 ```bash
 make user CHAPTER=5 BASE=1 TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
 make clean
-make test CHAPTER=5 BASE=1 INIT_PROC=ch5b_usertest TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
+make test CHAPTER=5 BASE=1 INIT_PROC=ch5b_usertest TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default LOG=info
 ```
 
 参考实现与学生实现分别保留日志。未填骨架只需可编译；首次进入目标函数会输出 `TODO(ch5-api)` 并停止，这是预期现象，不能算运行通过。
@@ -135,12 +135,43 @@ make test CHAPTER=5 BASE=1 INIT_PROC=ch5b_usertest TOOLPREFIX=riscv64-unknown-el
 
 ## 参考基线修正
 
-本章基于上游 `ch5` 提交 `8b1edfa`：补充 `allocproc` 根页分配失败时恢复空闲槽位；补充 `fork` 对用户栈位置及两项堆边界的继承，避免子进程内存元数据与复制的页面不一致。其余原有扩展 TODO 保留。分析报告引用改造后 `ch5-api-impl` 的实际完整 SHA，不能把此上游短 SHA 当作参考函数的现版本。
+本章基于上游 `ch5` 提交 `8b1edfa`：补充 `allocproc` 根页分配失败时恢复空闲槽位；补充 `fork` 对用户栈位置及两项堆边界的继承，避免子进程内存元数据与复制的页面不一致；补齐父进程退出时已经成为僵尸的孤儿槽位回收，避免无人 wait 的槽位长期占用。其余原有扩展 TODO 保留。分析报告引用改造后 `ch5-api-impl` 的实际完整 SHA，不能把此上游短 SHA 当作参考函数的现版本。
+
+## 阶段验收
+
+以下阶段用于安排学习进度和人工验收，沿用本章现有测例与 GDB 流程。每阶段记录“源码检查 / 构建 / 参考动态跟踪 / 自己实现运行”各自的实际结果。
+
+仍有其他目标函数未完成时，可先完成参考跟踪、源码检查和构建；运行到其 TODO 应记录为“受未完成依赖阻塞”，不能记为整章通过，也不能临时复制参考函数、跳过调用或修改测试来完成阶段验收。最终仍须完成全部目标函数及本章原有验收。
+
+| 阶段 | 实现范围 | 检查方式与完成依据 |
+| --- | --- | --- |
+| 槽位与地址空间 | `allocproc/freeproc` | 先在参考实现记录槽位从 UNUSED 到 USED 的变化、页表与静态栈的所有权；完成这两个函数的源码检查和构建。其余 TODO 尚在时不要求整套运行完成。 |
+| 复制与退出回收 | `fork/wait/exit` | 完成前五个相关函数后，可将已有 `ch5b_forktest0` 直接设为 INIT_PROC，观察父子返回值、退出码及 wait 回收。该程序不依赖 exec；同时静态说明两种父子退出顺序下的孤儿回收。 |
+| 程序替换与整章验收 | `exec` 及全部目标函数 | 补全 exec 后，用已有 `ch5b_exec_simple` 跟踪 PID 与用户入口变化，再运行原有 `ch5b_usertest` 和统一 positive 验收。 |
+
+阶段二使用已有程序的命令如下；先完成 `allocproc/freeproc/fork/wait/exit`，并按前文准备固定版本用户程序。程序中 `wait(0)` 的无子进程调用应返回负值，不能在确认有僵尸之前解引用退出码指针。
+
+```bash
+make clean
+make test CHAPTER=5 BASE=1 INIT_PROC=ch5b_forktest0 TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default LOG=info
+```
+
+以上只运行所选现有程序；完成 exec 后按“统一检查入口”恢复整章验收。
+
+## 答辩问题
+
+助教可从下表抽取两个问题，结合本人提交代码和报告进行约 5—8 分钟交流。先说明预期状态变化，再定位源码或已有日志；没有实际触发的分支明确标记为推导。不要求为答辩修改禁止改动的文件或新增测试。实现与参考相同可以是合理结果，评价依据是语义解释、证据对应和对边界的理解。
+
+| 问题 | 建议说明材料 |
+| --- | --- |
+| fork 为何能在父子用户流中返回不同结果？哪些资源复制，哪些资源不能复用？ | 两个 PID、trapframe 的 a0、页表与静态栈地址。 |
+| exit 已释放用户内存后，wait 还要回收什么？父先退出和子先退出分别如何处理？ | 退出码、父指针、ZOMBIE/UNUSED 转换及避免二次释放的理由。 |
+| exec 成功与名称查找失败时，PID、入口和旧映射分别应怎样变化？ | 源码顺序与已观察的状态；未触发分支注明为推导。 |
 
 ## 统一检查入口
 
 
-统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。下列手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
+统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。本文手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
 
 正式修改范围验收必须使用课程发布时保存的完整学生骨架 SHA；默认 `origin/chN-api` 只方便自查，在个人仓库推送后可能移动，不能替代固定基线。文本日志可存 `reports/*.txt` 或 `reports/*.log`，图片不在本轮自动范围白名单内。
 
