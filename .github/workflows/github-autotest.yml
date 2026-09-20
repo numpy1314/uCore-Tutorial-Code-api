@@ -1,17 +1,49 @@
-name: auto-test
+name: API lab validation
 
 on:
   push:
+    branches: [main, 'ch*-api-impl']
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'positive = completed implementation; negative = initial TODO skeleton only'
+        required: true
+        default: positive
+        type: choice
+        options: [positive, negative]
+
+permissions:
+  contents: read
 
 jobs:
-  base-test:
-    runs-on: ubuntu-latest
-    container:
-        image: duskmoon/dev-env:ucore-ci
+  course-tools:
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v3
-      - run: git clone https://github.com/LearningOS/uCore-Tutorial-Checker.git ucore-tutorial-ci
-      - run: git clone https://github.com/LearningOS/uCore-Tutorial-Test.git ucore-tutorial-ci/workplace/user
-      - name: run test
-        id: tester
-        run: cd ucore-tutorial-ci && make test passwd=${{ secrets.BASE_TEST_TOKEN }} CHAPTER=`echo ${GITHUB_REF##*/} | grep -oP 'ch\K[0-9]'`
+      - uses: actions/checkout@v4
+      - name: Validate course profile and modification scope checker
+        run: |
+          python3 -m unittest discover -s tests -p test_course_profile.py -v
+          python3 -m unittest discover -s tests -p test_check_lab.py -v
+          python3 -m unittest discover -s tests -p test_run_lab.py -v
+  kernel:
+    if: github.ref_name != 'main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install RISC-V build and execution tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf qemu-system-misc opensbi cmake make gdb-multiarch
+      - name: Run kernel validation
+        env:
+          LAB_MODE: ${{ inputs.mode || 'positive' }}
+        run: python3 tools/run_lab.py --mode "$LAB_MODE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-lab-validation-${{ github.ref_name }}
+          path: artifacts/

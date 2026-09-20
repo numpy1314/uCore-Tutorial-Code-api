@@ -48,21 +48,11 @@ void kvm_init(void)
 //    0..11 -- 12 bits of byte offset within the page.
 pte_t *walk(pagetable_t pagetable, uint64 va, int alloc)
 {
-	if (va >= MAXVA)
-		panic("walk");
-
-	for (int level = 2; level > 0; level--) {
-		pte_t *pte = &pagetable[PX(level, va)];
-		if (*pte & PTE_V) {
-			pagetable = (pagetable_t)PTE2PA(*pte);
-		} else {
-			if (!alloc || (pagetable = (pde_t *)kalloc()) == 0)
-				return 0;
-			memset(pagetable, 0, PGSIZE);
-			*pte = PA2PTE(pagetable) | PTE_V;
-		}
-	}
-	return &pagetable[PX(0, va)];
+	(void)pagetable;
+	(void)va;
+	(void)alloc;
+	panic("TODO(ch4-api): walk");
+	return 0;
 }
 
 // Look up a virtual address, return the physical address,
@@ -70,21 +60,10 @@ pte_t *walk(pagetable_t pagetable, uint64 va, int alloc)
 // Can only be used to look up user pages.
 uint64 walkaddr(pagetable_t pagetable, uint64 va)
 {
-	pte_t *pte;
-	uint64 pa;
-
-	if (va >= MAXVA)
-		return 0;
-
-	pte = walk(pagetable, va, 0);
-	if (pte == 0)
-		return 0;
-	if ((*pte & PTE_V) == 0)
-		return 0;
-	if ((*pte & PTE_U) == 0)
-		return 0;
-	pa = PTE2PA(*pte);
-	return pa;
+	(void)pagetable;
+	(void)va;
+	panic("TODO(ch4-api): walkaddr");
+	return 0;
 }
 
 // Look up a virtual address, return the physical address,
@@ -111,25 +90,13 @@ void kvmmap(pagetable_t kpgtbl, uint64 va, uint64 pa, uint64 sz, int perm)
 // allocate a needed page-table page.
 int mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
 {
-	uint64 a, last;
-	pte_t *pte;
-
-	a = PGROUNDDOWN(va);
-	last = PGROUNDDOWN(va + size - 1);
-	for (;;) {
-		if ((pte = walk(pagetable, a, 1)) == 0)
-			return -1;
-		if (*pte & PTE_V) {
-			errorf("remap");
-			return -1;
-		}
-		*pte = PA2PTE(pa) | perm | PTE_V;
-		if (a == last)
-			break;
-		a += PGSIZE;
-		pa += PGSIZE;
-	}
-	return 0;
+	(void)pagetable;
+	(void)va;
+	(void)size;
+	(void)pa;
+	(void)perm;
+	panic("TODO(ch4-api): mappages");
+	return -1;
 }
 
 // Remove npages of mappings starting from va. va must be
@@ -137,25 +104,11 @@ int mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm)
 // Optionally free the physical memory.
 void uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
 {
-	uint64 a;
-	pte_t *pte;
-
-	if ((va % PGSIZE) != 0)
-		panic("uvmunmap: not aligned");
-
-	for (a = va; a < va + npages * PGSIZE; a += PGSIZE) {
-		if ((pte = walk(pagetable, a, 0)) == 0)
-			continue;
-		if ((*pte & PTE_V) != 0) {
-			if (PTE_FLAGS(*pte) == PTE_V)
-				panic("uvmunmap: not a leaf");
-			if (do_free) {
-				uint64 pa = PTE2PA(*pte);
-				kfree((void *)pa);
-			}
-		}
-		*pte = 0;
-	}
+	(void)pagetable;
+	(void)va;
+	(void)npages;
+	(void)do_free;
+	panic("TODO(ch4-api): uvmunmap");
 }
 
 // create an empty user page table.

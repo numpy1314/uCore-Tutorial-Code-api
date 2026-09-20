@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "chapter": 4,
+  "title": "Sv39 页表与地址转换",
+  "student_branch": "ch4-api",
+  "reference_branch": "ch4-api-impl",
+  "allowed_code_files": [
+    "os/vm.c"
+  ],
+  "functions": [
+    {
+      "file": "os/vm.c",
+      "name": "walk"
+    },
+    {
+      "file": "os/vm.c",
+      "name": "mappages"
+    },
+    {
+      "file": "os/vm.c",
+      "name": "walkaddr"
+    },
+    {
+      "file": "os/vm.c",
+      "name": "uvmunmap"
+    }
+  ],
+  "test": {
+    "base": 1
+  }
+}
