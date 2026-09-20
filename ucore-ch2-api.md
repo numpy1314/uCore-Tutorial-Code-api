@@ -123,7 +123,7 @@ make gdbserver LOG=trace TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
 另开终端，在同一参考目录执行：
 
 ```bash
-riscv64-unknown-elf-gdb -nx build/kernel
+gdb-multiarch -nx build/kernel
 ```
 
 ```gdb
@@ -202,10 +202,32 @@ git diff --stat origin/ch2-api
 git diff origin/ch2-api -- os/syscall.c os/trap.c
 ```
 
+## 阶段验收
+
+以下阶段用于安排学习进度和人工验收，沿用本章现有测例与 GDB 流程。每阶段记录“源码检查 / 构建 / 参考动态跟踪 / 自己实现运行”各自的实际结果。
+
+仍有其他目标函数未完成时，可先完成参考跟踪、源码检查和构建；运行到其 TODO 应记录为“受未完成依赖阻塞”，不能记为整章通过，也不能临时复制参考函数、跳过调用或修改测试来完成阶段验收。最终仍须完成全部目标函数及本章原有验收。
+
+| 阶段 | 实现范围 | 检查方式与完成依据 |
+| --- | --- | --- |
+| 调用约定 | `syscall` | 在参考实现观察保存的 `a7/a0` 和调用返回值；完成分发代码的源码检查及构建。 |
+| 陷阱控制流 | `usertrap` | 完成两个函数后跟踪 `epc` 推进与用户态恢复，按本文已有流程观察异常应用切换。 |
+| 整章验收 | 两个目标函数 | 运行原有基础集合；单独记录本文已有异常集合的执行结果，不把两者合并成一次自动 PASS。 |
+
+## 答辩问题
+
+助教可从下表抽取两个问题，结合本人提交代码和报告进行约 5—8 分钟交流。先说明预期状态变化，再定位源码或已有日志；没有实际触发的分支明确标记为推导。不要求为答辩修改禁止改动的文件或新增测试。实现与参考相同可以是合理结果，评价依据是语义解释、证据对应和对边界的理解。
+
+| 问题 | 建议说明材料 |
+| --- | --- |
+| 系统调用参数与返回值共用 a0 时，为什么必须先保存参数？ | trapframe 中调用前后的值及分发代码。 |
+| 为什么 ecall 后推进 epc，而异常应用终止不采用相同的返回路径？ | 本次 Trap 原因、epc 变化和两个控制流分支。 |
+| 本章 panic 是否终止执行？如何确认异常后真正运行了下一应用？ | `os/log.h`、异常处理后续语句及应用输出。 |
+
 ## 统一检查入口
 
 
-统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。下列手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
+统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。本文手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
 
 正式修改范围验收必须使用课程发布时保存的完整学生骨架 SHA；默认 `origin/chN-api` 只方便自查，在个人仓库推送后可能移动，不能替代固定基线。文本日志可存 `reports/*.txt` 或 `reports/*.log`，图片不在本轮自动范围白名单内。
 
