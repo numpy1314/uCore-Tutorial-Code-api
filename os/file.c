@@ -27,6 +27,9 @@ void fileclose(struct file *f)
 		return;
 	}
 	switch (f->type) {
+	case FD_NONE:
+		// A reserved file may be rolled back before its type is set.
+		break;
 	case FD_STDIO:
 		// Do nothing
 		break;

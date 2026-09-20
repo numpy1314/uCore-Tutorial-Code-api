@@ -5,7 +5,7 @@ K = os
 U = user
 F = nfs
 
-TOOLPREFIX = riscv64-unknown-elf-
+TOOLPREFIX ?= riscv64-unknown-elf-
 CC = $(TOOLPREFIX)gcc
 AS = $(TOOLPREFIX)gcc
 LD = $(TOOLPREFIX)ld
@@ -77,7 +77,7 @@ $(C_OBJS): $(BUILDDIR)/$K/%.o : $K/%.c  $(BUILDDIR)/$K/%.d
 
 $(HEADER_DEP): $(BUILDDIR)/$K/%.d : $K/%.c
 	@mkdir -p $(@D)
-	@set -e; rm -f $@; $(CC) -MM $< $(INCLUDEFLAGS) > $@.$$$$; \
+	@set -e; rm -f $@; $(CC) $(CFLAGS) -MM $< $(INCLUDEFLAGS) > $@.$$$$; \
         sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
         rm -f $@.$$$$
 
@@ -98,7 +98,7 @@ clean:
 # BOARD
 BOARD		?= qemu
 SBI			?= rustsbi
-BOOTLOADER	:= ./bootloader/rustsbi-qemu.bin
+BOOTLOADER	?= ./bootloader/rustsbi-qemu.bin
 
 QEMU = qemu-system-riscv64
 QEMUOPTS = \
@@ -123,13 +123,13 @@ QEMUGDB = $(shell if $(QEMU) -help | grep -q '^-gdb'; \
 	then echo "-gdb tcp::15234"; \
 	else echo "-s -p 15234"; fi)
 
-debug: build/kernel .gdbinit
+debug: build/kernel $(F)/fs-copy.img .gdbinit
 	@tmux new-session -d \
 		$(QEMU) $(QEMUOPTS) -S $(QEMUGDB) && \
 		tmux split-window -h "$(GDB) -ex 'target remote localhost:15234'" && \
 		tmux -2 attach-session -d
 
-gdbserver: build/kernel
+gdbserver: build/kernel $(F)/fs-copy.img
 	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
 
 gdbclient:
@@ -139,6 +139,8 @@ CHAPTER ?= $(shell git rev-parse --abbrev-ref HEAD | grep -oP 'ch\K[0-9]')
 
 user:
 	make -C user CHAPTER=$(CHAPTER) BASE=$(BASE)
+	rm -f os/link_app.S os/kernel_app.ld os/initproc.S nfs/fs.img nfs/fs-copy.img
 
-test: user run
+test: user
+	$(MAKE) run
 

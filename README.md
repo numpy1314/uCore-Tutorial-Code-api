@@ -1,3 +1,7 @@
+# uCore 第 7 章 API 实验
+
+从 [ucore-ch7-api.md](ucore-ch7-api.md) 开始。学生分支 `ch7-api`；教师参考分支 `ch7-api-impl`。提交报告使用 [reports/lab-report.md](reports/lab-report.md)，代码范围见 [lab.json](lab.json)。
+
 # uCore-Tutorial-Code
 
 Course project for THU-OS.

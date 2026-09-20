@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "chapter": 7,
+  "title": "管道通信与端点生命周期",
+  "student_branch": "ch7-api",
+  "reference_branch": "ch7-api-impl",
+  "allowed_code_files": [
+    "os/pipe.c",
+    "os/syscall.c"
+  ],
+  "functions": [
+    {
+      "file": "os/pipe.c",
+      "name": "pipealloc"
+    },
+    {
+      "file": "os/pipe.c",
+      "name": "pipeclose"
+    },
+    {
+      "file": "os/pipe.c",
+      "name": "pipewrite"
+    },
+    {
+      "file": "os/pipe.c",
+      "name": "piperead"
+    },
+    {
+      "file": "os/syscall.c",
+      "name": "sys_pipe"
+    }
+  ],
+  "test": {
+    "base": 1
+  }
+}
