@@ -34,7 +34,7 @@ uint64 console_read(uint64 va, uint64 len)
 
 uint64 sys_write(int fd, uint64 va, uint64 len)
 {
-	if (fd < 0 || fd > FD_BUFFER_SIZE)
+	if (fd < 0 || fd >= FD_BUFFER_SIZE)
 		return -1;
 	struct proc *p = curr_proc();
 	struct file *f = p->files[fd];
@@ -56,7 +56,7 @@ uint64 sys_write(int fd, uint64 va, uint64 len)
 
 uint64 sys_read(int fd, uint64 va, uint64 len)
 {
-	if (fd < 0 || fd > FD_BUFFER_SIZE)
+	if (fd < 0 || fd >= FD_BUFFER_SIZE)
 		return -1;
 	struct proc *p = curr_proc();
 	struct file *f = p->files[fd];
@@ -150,32 +150,36 @@ uint64 sys_wait(int pid, uint64 va)
 uint64 sys_pipe(uint64 fdarray)
 {
 	struct proc *p = curr_proc();
-	uint64 fd0, fd1;
-	struct file *f0, *f1;
-	if (f0 < 0 || f1 < 0) {
-		return -1;
-	}
-	f0 = filealloc();
-	f1 = filealloc();
+	int fd0 = -1, fd1 = -1;
+	struct file *f0 = filealloc();
+	struct file *f1 = filealloc();
+	uint64 fds[2];
+
+	if (f0 == NULL || f1 == NULL)
+		goto bad;
 	if (pipealloc(f0, f1) < 0)
-		goto err0;
+		goto bad;
 	fd0 = fdalloc(f0);
+	if (fd0 < 0)
+		goto bad;
 	fd1 = fdalloc(f1);
-	if (fd0 < 0 || fd1 < 0)
-		goto err0;
-	if (copyout(p->pagetable, fdarray, (char *)&fd0, sizeof(fd0)) < 0 ||
-	    copyout(p->pagetable, fdarray + sizeof(uint64), (char *)&fd1,
-		    sizeof(fd1)) < 0) {
-		goto err1;
-	}
+	if (fd1 < 0)
+		goto bad;
+	fds[0] = fd0;
+	fds[1] = fd1;
+	if (copyout(p->pagetable, fdarray, (char *)fds, sizeof(fds)) < 0)
+		goto bad;
 	return 0;
 
-err1:
-	p->files[fd0] = 0;
-	p->files[fd1] = 0;
-err0:
-	fileclose(f0);
-	fileclose(f1);
+bad:
+	if (fd0 >= 0)
+		p->files[fd0] = NULL;
+	if (fd1 >= 0)
+		p->files[fd1] = NULL;
+	if (f0 != NULL)
+		fileclose(f0);
+	if (f1 != NULL)
+		fileclose(f1);
 	return -1;
 }
 
@@ -189,7 +193,7 @@ uint64 sys_openat(uint64 va, uint64 omode, uint64 _flags)
 
 uint64 sys_close(int fd)
 {
-	if (fd < 0 || fd > FD_BUFFER_SIZE)
+	if (fd < 0 || fd >= FD_BUFFER_SIZE)
 		return -1;
 	struct proc *p = curr_proc();
 	struct file *f = p->files[fd];

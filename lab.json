@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "chapter": 8,
+  "title": "线程同步",
+  "student_branch": "ch8-api",
+  "reference_branch": "ch8-api-impl",
+  "allowed_code_files": [
+    "os/sync.c"
+  ],
+  "functions": [
+    {
+      "file": "os/sync.c",
+      "name": "mutex_lock"
+    },
+    {
+      "file": "os/sync.c",
+      "name": "mutex_unlock"
+    },
+    {
+      "file": "os/sync.c",
+      "name": "semaphore_up"
+    },
+    {
+      "file": "os/sync.c",
+      "name": "semaphore_down"
+    },
+    {
+      "file": "os/sync.c",
+      "name": "cond_signal"
+    },
+    {
+      "file": "os/sync.c",
+      "name": "cond_wait"
+    }
+  ],
+  "test": {
+    "base": 1
+  }
+}

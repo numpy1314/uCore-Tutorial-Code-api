@@ -299,9 +299,10 @@ void freeproc(struct proc *p)
 	p->pagetable = 0;
 	p->max_page = 0;
 	p->ustack_base = 0;
-	for (int i = 0; i > FD_BUFFER_SIZE; i++) {
+	for (int i = 0; i < FD_BUFFER_SIZE; i++) {
 		if (p->files[i] != NULL) {
 			fileclose(p->files[i]);
+			p->files[i] = NULL;
 		}
 	}
 	p->state = P_UNUSED;
