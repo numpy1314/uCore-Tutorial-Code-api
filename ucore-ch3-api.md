@@ -352,10 +352,32 @@ git commit -m "finish ucore ch3 api lab"
 
 提交前应能解释四个接口的状态变化、两次 `swtch()` 参数分别保存和恢复什么，以及 `yield()` 返回而 `exit()` 不再返回的原因。报告引用参考分支的具体 commit，不将参考答案复制为分析报告。
 
+## 阶段验收
+
+以下阶段用于安排学习进度和人工验收，沿用本章现有测例与 GDB 流程。每阶段记录“源码检查 / 构建 / 参考动态跟踪 / 自己实现运行”各自的实际结果。
+
+仍有其他目标函数未完成时，可先完成参考跟踪、源码检查和构建；运行到其 TODO 应记录为“受未完成依赖阻塞”，不能记为整章通过，也不能临时复制参考函数、跳过调用或修改测试来完成阶段验收。最终仍须完成全部目标函数及本章原有验收。
+
+| 阶段 | 实现范围 | 检查方式与完成依据 |
+| --- | --- | --- |
+| 初始状态 | `proc_init` | 在参考实现核对槽位、栈、trapframe 和 `current_proc` 的对应关系；检查自己的初始化并构建。 |
+| 切换与继续 | `scheduler/yield/exit` | 完成四个函数后，使用现有 yield 程序跟踪进程让出与恢复，以及退出后的状态。 |
+| 整章验收 | 四个目标函数 | 运行本章原有 `BASE=2` 集合，核对各应用退出记录与 trace 结果。 |
+
+## 答辩问题
+
+助教可从下表抽取两个问题，结合本人提交代码和报告进行约 5—8 分钟交流。先说明预期状态变化，再定位源码或已有日志；没有实际触发的分支明确标记为推导。不要求为答辩修改禁止改动的文件或新增测试。实现与参考相同可以是合理结果，评价依据是语义解释、证据对应和对边界的理解。
+
+| 问题 | 建议说明材料 |
+| --- | --- |
+| 为什么 trapframe 和 context 不能互换？一次 yield 从哪里继续？ | 保存的寄存器类别、swtch 调用点和恢复位置。 |
+| 调度前应保持 current_proc 与进程状态怎样的关系？ | 一次切换前后的指针、状态与 PID。 |
+| 退出进程为何不能重新进入 RUNNABLE？当前扫描顺序如何让其他进程获得机会？ | scheduler、exit 和实际调度记录。 |
+
 ## 统一检查入口
 
 
-统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。下列手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
+统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。本文手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
 
 正式修改范围验收必须使用课程发布时保存的完整学生骨架 SHA；默认 `origin/chN-api` 只方便自查，在个人仓库推送后可能移动，不能替代固定基线。文本日志可存 `reports/*.txt` 或 `reports/*.log`，图片不在本轮自动范围白名单内。
 
