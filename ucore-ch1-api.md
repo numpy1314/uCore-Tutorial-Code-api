@@ -20,7 +20,7 @@
 
 ## 已提供的启动环境
 
-QEMU 的 `virt` 机器加载 `bootloader/rustsbi-qemu.bin`。RustSBI 将控制权交给位于 `0x80200000` 的内核，`os/entry.S::_entry` 将 `sp` 设置为 `boot_stack_top`，再调用 `main()`。启动栈为 64 KiB，进入 C 函数前已经可用。
+统一验收在 QEMU `virt` 上使用发行版 OpenSBI（`BOOTLOADER=default`），将控制权交给位于 `0x80200000` 的内核；仓库另保留旧 RustSBI 镜像供原环境使用。`os/entry.S::_entry` 将 `sp` 设置为 `boot_stack_top`，再调用 `main()`。启动栈为 64 KiB，进入 C 函数前已经可用。
 
 `os/kernel.ld` 将 `.bss.stack` 放在 `s_bss` **之前**，因此 `[s_bss, e_bss)` 不包含正在使用的启动栈。链接符号表示地址，不能把它们当作函数调用。各地址可能随构建变化，必须取符号本身的地址。
 
@@ -91,7 +91,7 @@ make gdbserver LOG=debug TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
 另开终端，在该参考目录中启动 GDB。使用 `-nx` 避免 `.gdbinit` 重复连接：
 
 ```bash
-riscv64-unknown-elf-gdb -nx build/kernel
+gdb-multiarch -nx build/kernel
 ```
 
 ```gdb
@@ -154,10 +154,32 @@ git diff --stat origin/ch1-api
 git diff origin/ch1-api -- os/main.c
 ```
 
+## 阶段验收
+
+以下阶段用于安排学习进度和人工验收，沿用本章现有测例与 GDB 流程。每阶段记录“源码检查 / 构建 / 参考动态跟踪 / 自己实现运行”各自的实际结果。
+
+仍有其他目标函数未完成时，可先完成参考跟踪、源码检查和构建；运行到其 TODO 应记录为“受未完成依赖阻塞”，不能记为整章通过，也不能临时复制参考函数、跳过调用或修改测试来完成阶段验收。最终仍须完成全部目标函数及本章原有验收。
+
+| 阶段 | 实现范围 | 检查方式与完成依据 |
+| --- | --- | --- |
+| 启动边界 | `clean_bss` | 阅读链接脚本，在参考实现记录 `s_bss/e_bss/sp`；检查半开区间和启动栈关系。区间为空时如实记录。 |
+| 启动流程 | `main` | 完成两个函数后构建，跟踪清零、控制台初始化与关闭的调用顺序。 |
+| 整章验收 | 两个目标函数 | 运行现有 positive 入口，提交启动日志、范围检查和报告；说明输出能够证明与不能证明的行为。 |
+
+## 答辩问题
+
+助教可从下表抽取两个问题，结合本人提交代码和报告进行约 5—8 分钟交流。先说明预期状态变化，再定位源码或已有日志；没有实际触发的分支明确标记为推导。不要求为答辩修改禁止改动的文件或新增测试。实现与参考相同可以是合理结果，评价依据是语义解释、证据对应和对边界的理解。
+
+| 问题 | 建议说明材料 |
+| --- | --- |
+| 如果 `s_bss == e_bss`，清零函数应做什么？仅看到零值能否证明执行了清零？ | 本次链接符号、循环条件、实际断点或单步记录。 |
+| 为什么清零范围必须排除启动栈？清零和控制台初始化的先后关系是什么？ | 链接脚本、`sp` 和启动调用链。 |
+| 如何区分本章正常演示结束与 TODO 提前终止？ | 原始输出顺序、关闭调用点和源码引用。 |
+
 ## 统一检查入口
 
 
-统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。下列手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
+统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。本文手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
 
 正式修改范围验收必须使用课程发布时保存的完整学生骨架 SHA；默认 `origin/chN-api` 只方便自查，在个人仓库推送后可能移动，不能替代固定基线。文本日志可存 `reports/*.txt` 或 `reports/*.log`，图片不在本轮自动范围白名单内。
 
