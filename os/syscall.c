@@ -36,23 +36,36 @@ uint64 sys_gettimeofday(TimeVal *val, int _tz)
 	return 0;
 }
 
-/*
-* LAB1: you may need to define sys_trace here
-*/
+uint64 sys_trace(uint64 trace_request, uint64 id, uint64 data)
+{
+	switch (trace_request) {
+	case 0:
+		return *(uint8 *)id;
+	case 1:
+		*(uint8 *)id = (uint8)data;
+		return 0;
+	case 2:
+		if (id >= MAX_SYSCALL_NUM)
+			return 0;
+		return curr_proc()->syscall_counts[id];
+	default:
+		return -1;
+	}
+}
 
 extern char trap_page[];
 
 void syscall()
 {
 	struct trapframe *trapframe = curr_proc()->trapframe;
-	int id = trapframe->a7, ret;
+	uint64 id = trapframe->a7;
+	uint64 ret;
 	uint64 args[6] = { trapframe->a0, trapframe->a1, trapframe->a2,
 			   trapframe->a3, trapframe->a4, trapframe->a5 };
 	tracef("syscall %d args = [%x, %x, %x, %x, %x, %x]", id, args[0],
 	       args[1], args[2], args[3], args[4], args[5]);
-	/*
-	* LAB1: you may need to update syscall counter here
-	*/
+	if (id < MAX_SYSCALL_NUM)
+		curr_proc()->syscall_counts[id]++;
 	switch (id) {
 	case SYS_write:
 		ret = sys_write(args[0], (char *)args[1], args[2]);
@@ -66,9 +79,9 @@ void syscall()
 	case SYS_gettimeofday:
 		ret = sys_gettimeofday((TimeVal *)args[0], args[1]);
 		break;
-	/*
-	* LAB1: you may need to add SYS_trace case here
-	*/
+	case SYS_trace:
+		ret = sys_trace(args[0], args[1], args[2]);
+		break;
 	default:
 		ret = -1;
 		errorf("unknown syscall %d", id);

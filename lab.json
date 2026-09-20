@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "chapter": 3,
+  "title": "多道程序与分时调度",
+  "student_branch": "ch3-api",
+  "reference_branch": "ch3-api-impl",
+  "allowed_code_files": [
+    "os/proc.c"
+  ],
+  "functions": [
+    {
+      "file": "os/proc.c",
+      "name": "proc_init"
+    },
+    {
+      "file": "os/proc.c",
+      "name": "scheduler"
+    },
+    {
+      "file": "os/proc.c",
+      "name": "yield"
+    },
+    {
+      "file": "os/proc.c",
+      "name": "exit"
+    }
+  ],
+  "test": {
+    "base": 2
+  }
+}
