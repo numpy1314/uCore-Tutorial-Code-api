@@ -72,6 +72,7 @@ def execute(command, repo, path, timeout, stop_marker):
     started = time.monotonic()
     output = bytearray()
     completed = False
+    completion_deadline = None
     with path.open("wb") as log:
         process = subprocess.Popen(command, cwd=repo, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         try:
@@ -85,8 +86,14 @@ def execute(command, repo, path, timeout, stop_marker):
                         output.extend(chunk)
                     elif process.poll() is not None:
                         break
-                if stop_marker and stop_marker in ANSI.sub("", output.decode(errors="replace")):
+                if (stop_marker and not completed
+                        and stop_marker in ANSI.sub("", output.decode(errors="replace"))):
                     completed = True
+                    # Let the kernel finish its final diagnostic and shutdown.
+                    # Immediate termination can split an expected completion
+                    # panic into a partial line that looks like a real failure.
+                    completion_deadline = time.monotonic() + 1.0
+                if completion_deadline is not None and time.monotonic() >= completion_deadline:
                     break
                 if process.poll() is not None:
                     break
