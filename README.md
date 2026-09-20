@@ -1,3 +1,13 @@
+# uCore 第 6 章 API 实验：文件对象与 inode 读写
+
+- [实验任务、接口契约与验收](ucore-ch6-api.md)
+- 学生分支：`ch6-api`，参考实现分支：`ch6-api-impl`。
+- [实验范围清单](lab.json)；[Markdown 实验报告模板](reports/lab-report.md)。
+- 先阅读参考实现并完成 GDB 跟踪，再独立实现学生分支中的指定函数；原有课程记录文件继续保留。
+- 本实验以 `BASE=1` 为基础范围，原上游的拓展 TODO 不在本轮验收中。
+
+---
+
 # uCore-Tutorial-Code
 
 Course project for THU-OS.

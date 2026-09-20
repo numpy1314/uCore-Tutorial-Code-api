@@ -90,6 +90,10 @@ found:
 	p->parent = NULL;
 	p->exit_code = 0;
 	p->pagetable = uvmcreate((uint64)p->trapframe);
+	if (p->pagetable == 0) {
+		p->state = UNUSED;
+		return 0;
+	}
 	p->program_brk = 0;
         p->heap_bottom = 0;
 	memset(&p->context, 0, sizeof(p->context));
@@ -182,9 +186,10 @@ void freeproc(struct proc *p)
 	if (p->pagetable)
 		freepagetable(p->pagetable, p->max_page);
 	p->pagetable = 0;
-	for (int i = 0; i > FD_BUFFER_SIZE; i++) {
+	for (int i = 0; i < FD_BUFFER_SIZE; i++) {
 		if (p->files[i] != NULL) {
 			fileclose(p->files[i]);
+			p->files[i] = NULL;
 		}
 	}
 	p->state = UNUSED;
@@ -204,6 +209,9 @@ int fork()
 		panic("uvmcopy\n");
 	}
 	np->max_page = p->max_page;
+	np->ustack = p->ustack;
+	np->program_brk = p->program_brk;
+	np->heap_bottom = p->heap_bottom;
 	// Copy file table to new proc
 	for (i = 0; i < FD_BUFFER_SIZE; i++) {
 		if (p->files[i] != NULL) {

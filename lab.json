@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "chapter": 6,
+  "title": "文件对象与 inode 读写",
+  "student_branch": "ch6-api",
+  "reference_branch": "ch6-api-impl",
+  "allowed_code_files": [
+    "os/file.c",
+    "os/fs.c"
+  ],
+  "functions": [
+    {
+      "file": "os/file.c",
+      "name": "filealloc"
+    },
+    {
+      "file": "os/file.c",
+      "name": "fileclose"
+    },
+    {
+      "file": "os/file.c",
+      "name": "fileopen"
+    },
+    {
+      "file": "os/file.c",
+      "name": "inoderead"
+    },
+    {
+      "file": "os/file.c",
+      "name": "inodewrite"
+    },
+    {
+      "file": "os/fs.c",
+      "name": "readi"
+    },
+    {
+      "file": "os/fs.c",
+      "name": "writei"
+    },
+    {
+      "file": "os/fs.c",
+      "name": "itrunc"
+    }
+  ],
+  "test": {
+    "base": 1
+  }
+}
