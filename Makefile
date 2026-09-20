@@ -1,5 +1,5 @@
 .PHONY: clean build user
-all: build_kernel
+all: build
 
 LOG ?= error
 
@@ -84,7 +84,7 @@ clean:
 # BOARD
 BOARD		?= qemu
 SBI			?= rustsbi
-BOOTLOADER	:= ./bootloader/rustsbi-qemu.bin
+BOOTLOADER	?= ./bootloader/rustsbi-qemu.bin
 
 QEMU = qemu-system-riscv64
 QEMUOPTS = \
