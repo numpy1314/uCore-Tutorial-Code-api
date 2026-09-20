@@ -33,7 +33,7 @@ uint64 console_read(uint64 va, uint64 len)
 
 uint64 sys_write(int fd, uint64 va, uint64 len)
 {
-	if (fd < 0 || fd > FD_BUFFER_SIZE)
+	if (fd < 0 || fd >= FD_BUFFER_SIZE)
 		return -1;
 	struct proc *p = curr_proc();
 	struct file *f = p->files[fd];
@@ -55,7 +55,7 @@ uint64 sys_write(int fd, uint64 va, uint64 len)
 
 uint64 sys_read(int fd, uint64 va, uint64 len)
 {
-	if (fd < 0 || fd > FD_BUFFER_SIZE)
+	if (fd < 0 || fd >= FD_BUFFER_SIZE)
 		return -1;
 	struct proc *p = curr_proc();
 	struct file *f = p->files[fd];
@@ -160,34 +160,7 @@ uint64 sys_set_priority(long long prio)
 
 uint64 sys_pipe(uint64 fdarray)
 {
-	struct proc *p = curr_proc();
-	uint64 fd0, fd1;
-	struct file *f0, *f1;
-	if (f0 < 0 || f1 < 0) {
-		return -1;
-	}
-	f0 = filealloc();
-	f1 = filealloc();
-	if (pipealloc(f0, f1) < 0)
-		goto err0;
-	fd0 = fdalloc(f0);
-	fd1 = fdalloc(f1);
-	if (fd0 < 0 || fd1 < 0)
-		goto err0;
-	if (copyout(p->pagetable, fdarray, (char *)&fd0, sizeof(fd0)) < 0 ||
-	    copyout(p->pagetable, fdarray + sizeof(uint64), (char *)&fd1,
-		    sizeof(fd1)) < 0) {
-		goto err1;
-	}
-	return 0;
-
-err1:
-	p->files[fd0] = 0;
-	p->files[fd1] = 0;
-err0:
-	fileclose(f0);
-	fileclose(f1);
-	return -1;
+	panic("TODO(ch7-api): sys_pipe");
 }
 
 uint64 sys_openat(uint64 va, uint64 omode, uint64 _flags)
@@ -200,7 +173,7 @@ uint64 sys_openat(uint64 va, uint64 omode, uint64 _flags)
 
 uint64 sys_close(int fd)
 {
-	if (fd < 0 || fd > FD_BUFFER_SIZE)
+	if (fd < 0 || fd >= FD_BUFFER_SIZE)
 		return -1;
 	struct proc *p = curr_proc();
 	struct file *f = p->files[fd];
