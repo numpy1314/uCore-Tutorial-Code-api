@@ -27,6 +27,8 @@
 
 本轮不挖空线程创建/退出，也不要求死锁检测。原代码保留的 `enable_deadlock_detect` 等拓展 TODO 不属于这 6 个函数，验收使用 `BASE=1`，`ch8_deadlock_*` 不属于本轮通过条件。
 
+配套进程退出代码会释放已经成为僵尸的孤儿所占槽位（`P_UNUSED`），不再次释放已回收的线程或用户内存；存活孩子继续执行。该处理已提供。
+
 ## 数据结构与执行假设
 
 `os/sync.h` 定义：
@@ -111,7 +113,7 @@ nl -ba os/proc.c
 # 终端 A
 make gdbserver CHAPTER=8 BASE=1 TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
 # 终端 B；显式禁用自动加载 .gdbinit，避免重复连接
-riscv64-unknown-elf-gdb -nx build/kernel
+gdb-multiarch -nx build/kernel
 ```
 
 ```gdb
@@ -155,10 +157,41 @@ make run CHAPTER=8 BASE=1 TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
 
 学生骨架可编译，运行到目标函数时应报 `TODO(ch8-api)` 并停止，属于未完成状态。提交前消除所有 6 个占位、完成代码范围检查、保存编译及基础测试原始输出并交报告。只证明实际运行的测试；不宣称死锁检测、SMP 或全部边界已覆盖。
 
+## 阶段验收
+
+以下阶段用于安排学习进度和人工验收，沿用本章现有测例与 GDB 流程。每阶段记录“源码检查 / 构建 / 参考动态跟踪 / 自己实现运行”各自的实际结果。
+
+仍有其他目标函数未完成时，可先完成参考跟踪、源码检查和构建；运行到其 TODO 应记录为“受未完成依赖阻塞”，不能记为整章通过，也不能临时复制参考函数、跳过调用或修改测试来完成阶段验收。最终仍须完成全部目标函数及本章原有验收。
+
+| 阶段 | 实现范围 | 检查方式与完成依据 |
+| --- | --- | --- |
+| 互斥与交接 | `mutex_lock/mutex_unlock` | 对照参考实现分析自旋式和阻塞式等待；可将已有 `ch8b_spin_mut_race`、`ch8b_mut_race` 分别设为 INIT_PROC 观察已完成的互斥实现。 |
+| 许可与通知 | `semaphore_down/up/cond_wait/signal` | 按原语补全后，分别使用已有 `ch8b_sync_sem`、`ch8b_test_condvar` 跟踪计数、等待状态和恢复路径；尚未触发的竞争情形进行源码推导。 |
+| 整章验收 | 六个目标函数 | 全部完成后运行原有 `ch8b_usertest`；说明当前单核执行前提，以及实际动态观察的范围。 |
+
+分原语观察可使用已有程序，例如先完成两个互斥函数后执行：
+
+```bash
+make clean
+make test CHAPTER=8 BASE=1 INIT_PROC=ch8b_mut_race TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
+```
+
+替换 INIT_PROC 时重新清理和构建；单个程序通过不等于其余同步原语已完成。
+
+## 答辩问题
+
+助教可从下表抽取两个问题，结合本人提交代码和报告进行约 5—8 分钟交流。先说明预期状态变化，再定位源码或已有日志；没有实际触发的分支明确标记为推导。不要求为答辩修改禁止改动的文件或新增测试。实现与参考相同可以是合理结果，评价依据是语义解释、证据对应和对边界的理解。
+
+| 问题 | 建议说明材料 |
+| --- | --- |
+| 阻塞锁唤醒等待者时，为什么 locked 可以保持为 1？这与自旋式锁有何不同？ | 等待队列、RUNNABLE 状态与资源交接位置。 |
+| 信号量 count 为负时表示什么？up 后为零时应否唤醒等待者？ | 计数变化、排队人数和对应源码分支。 |
+| signal 后通知线程仍持锁时，等待线程能否从 cond_wait 返回？当前解锁与入队顺序依赖什么执行前提？ | 醒来后的重新加锁、可能再次阻塞的位置和单核显式调度假设。 |
+
 ## 统一检查入口
 
 
-统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。下列手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
+统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。本文手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
 
 正式修改范围验收必须使用课程发布时保存的完整学生骨架 SHA；默认 `origin/chN-api` 只方便自查，在个人仓库推送后可能移动，不能替代固定基线。文本日志可存 `reports/*.txt` 或 `reports/*.log`，图片不在本轮自动范围白名单内。
 
