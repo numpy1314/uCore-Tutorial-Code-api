@@ -112,7 +112,7 @@ make build CHAPTER=6 BASE=1 INIT_PROC=ch6b_filetest_simple
 make gdbserver CHAPTER=6 BASE=1 INIT_PROC=ch6b_filetest_simple TOOLPREFIX=riscv64-unknown-elf- BOOTLOADER=default
 ```
 
-另一终端执行 `riscv64-unknown-elf-gdb -nx build/kernel`，然后：
+另一终端执行 `gdb-multiarch -nx build/kernel`，然后：
 
 ```gdb
 set pagination off
@@ -150,7 +150,7 @@ make test CHAPTER=6 BASE=1 INIT_PROC=ch6b_usertest TOOLPREFIX=riscv64-unknown-el
 
 未完成学生骨架应可编译，首次执行目标函数将显示 `TODO(ch6-api)` 并停止，不能算验收通过。完成后至少执行基础套件、独立文件创建/读写/关闭测例，核对每项执行和退出码；顶层基础测例应退出 `0`。检查文件写入再读出的内容一致，不能只看总标语、镜像生成或用户终端启动。
 
-**上游测试版本注意事项。** 测试库提交 `1733f460c596b013b1c509ad42afa428640783b0` 的 `ch6b_usertest` 写的是 `ch6b_filetest`，而实际源文件名为 `ch6b_filetest_simple.c`；同版本 `ch6b_exec` 的 argv 未以空指针终止。应使用仓库统一测试准备工具提供并记录的修正版，不让学生擅改验收测例。未修正时不得宣称整套通过，可先独立运行：
+**上游测试版本注意事项。** 测试库提交 `1733f460c596b013b1c509ad42afa428640783b0` 同时包含 `ch6b_filetest.c` 和 `ch6b_filetest_simple.c`。教师补丁将基础套件的文件读写项选择为后者，并修正其读取长度检查和字符串终止，使内容比较有明确依据；两个源文件均保留。这属于基础验收用例的选择，不是修复不存在的文件名。同版本 `ch6b_exec` 的 argv 未以空指针终止。应使用仓库统一测试准备工具提供并记录的修正版，不让学生擅改验收测例。未修正时不得宣称整套通过，可先独立运行：
 
 ```bash
 make clean
@@ -166,16 +166,40 @@ make test CHAPTER=6 BASE=1 INIT_PROC=ch6b_filetest_simple TOOLPREFIX=riscv64-unk
 本章基于上游 `ch6` 提交 `feb306c`。改造提供以下共同修复，学生无需跨文件处理：
 
 - `allocproc` 根页分配失败恢复槽位；`fork` 继承用户栈/堆元数据。
+- `sys_read/sys_write/sys_close` 使用 `fd >= FD_BUFFER_SIZE` 拒绝越界描述符；该系统调用层由教师提供，不属于学生修改范围。
+- 进程退出时清除孩子的父指针，并释放已经退出的孤儿所占槽位；活着的孤儿继续执行，不重复释放僵尸的资源。
 - `freeproc` 的 fd 遍历条件从永不进入的 `i > FD_BUFFER_SIZE` 改为正确范围，关闭后清空指针。
 - `fileopen` 先初始化 `file` 再尝试登记 fd，使 fd 耗尽清理不再关闭 `FD_NONE` 对象并触发 panic。
 - `gdbserver/debug` 构建目标补充文件系统镜像依赖，确保新检出即可按文档启动调试。
 
 原有拓展 TODO 继续保留；报告应引用改造后参考实现的完整 SHA。数据结构、并发前提与 open 标志的行为均以本章接口契约和 C 源码为准。
 
+## 阶段验收
+
+以下阶段用于安排学习进度和人工验收，沿用本章现有测例与 GDB 流程。每阶段记录“源码检查 / 构建 / 参考动态跟踪 / 自己实现运行”各自的实际结果。
+
+仍有其他目标函数未完成时，可先完成参考跟踪、源码检查和构建；运行到其 TODO 应记录为“受未完成依赖阻塞”，不能记为整章通过，也不能临时复制参考函数、跳过调用或修改测试来完成阶段验收。最终仍须完成全部目标函数及本章原有验收。
+
+| 阶段 | 实现范围 | 检查方式与完成依据 |
+| --- | --- | --- |
+| 打开对象与引用 | `filealloc/fileclose/fileopen` | 在参考实现跟踪 fd、file、inode 的对应关系；检查自己的初始化和失败清理并构建。启动装载本身依赖 readi，此时不要求学生内核完成文件测例。 |
+| 分层读写 | `readi/writei/inoderead/inodewrite` | 在参考实现观察实际字节数和偏移变化；检查各层职责、分片边界和缓存引用释放。尚未实现的 itrunc 保留 TODO，阶段结论限于已检查的代码与实际到达的路径。 |
+| 截断回收与整章验收 | `itrunc` 及全部目标函数 | 静态核对直接块、间接数据块和索引块的回收；八个函数完成后运行已有 `ch6b_filetest_simple` 和 `ch6b_usertest`。基础测例未触发的截断或间接块路径注明未动态覆盖。 |
+
+## 答辩问题
+
+助教可从下表抽取两个问题，结合本人提交代码和报告进行约 5—8 分钟交流。先说明预期状态变化，再定位源码或已有日志；没有实际触发的分支明确标记为推导。不要求为答辩修改禁止改动的文件或新增测试。实现与参考相同可以是合理结果，评价依据是语义解释、证据对应和对边界的理解。
+
+| 问题 | 建议说明材料 |
+| --- | --- |
+| 两个 fd 指向同一 file，与两次独立 open 同一 inode 有何区别？ | fd/file/inode 关系、引用数和偏移由谁保存。 |
+| 为什么偏移只能增加实际读写字节数？跨块时地址和长度怎样推进？ | 一次读写的请求量、返回量、off 与分片计算。 |
+| fd 分配失败或最后一次关闭时，哪些资源必须归还？itrunc 与 close 有何不同？ | fileopen/fileclose/itrunc 的资源归属与清理顺序。 |
+
 ## 统一检查入口
 
 
-统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。下列手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
+统一验收采用 QEMU 附带的 OpenSBI（安装 `opensbi`，参数 `BOOTLOADER=default`）；仓库原始 RustSBI 仍保留用于历史环境，不能将旧固件在新版 QEMU 下的启动失败归因于学生函数。本文手动构建/GDB 命令同样需要先运行 `python3 tools/run_lab.py --prepare-only`（第 1 章无需用户程序），并使用 `TOOLPREFIX=riscv64-unknown-elf-` 和 `BOOTLOADER=default`。完整工具安装说明见主分支 `docs/api-labs.md`。
 
 正式修改范围验收必须使用课程发布时保存的完整学生骨架 SHA；默认 `origin/chN-api` 只方便自查，在个人仓库推送后可能移动，不能替代固定基线。文本日志可存 `reports/*.txt` 或 `reports/*.log`，图片不在本轮自动范围白名单内。
 
