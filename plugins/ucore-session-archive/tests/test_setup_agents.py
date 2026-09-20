@@ -138,6 +138,8 @@ class SetupCommandTests(unittest.TestCase):
         shutil.copy2(REPOSITORY / 'scripts/setup-agent-plugins.sh', self.root / 'scripts/setup-agent-plugins.sh')
         shutil.copy2(REPOSITORY / 'scripts/course_runtime.py', self.root / 'scripts/course_runtime.py')
         shutil.copy2(REPOSITORY / 'course.py', self.root / 'course.py')
+        shutil.copy2(REPOSITORY / 'course-profile.json', self.root / 'course-profile.json')
+        shutil.copy2(REPOSITORY / 'scripts/course_profile.py', self.root / 'scripts/course_profile.py')
         for directory in ('.course-monitor', '.agents', '.claude-plugin'):
             shutil.copytree(REPOSITORY / directory, self.root / directory)
         subprocess.run(['git', 'init', '-q', str(self.root)], check=True)

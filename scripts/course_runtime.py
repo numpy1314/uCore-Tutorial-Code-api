@@ -7,18 +7,26 @@ import sys
 import tempfile
 from pathlib import Path
 
+from course_profile import load_profile, validate_distribution
+
 RUNTIME_PATH = Path('.ai/course-tools')
 HOOKS_PATH = '.ai/course-tools/.course-monitor/hooks'
-LOCAL_PATHS = (
-    '.ai/course-tools/', '.ai/ide/',
-    '.codex/config.toml', '.codex/session-archive.json',
-    '.claude/settings.json', '.claude/settings.local.json', '.claude/session-archive.json',
-    '.cursor/hooks.json', '.cursor/session-archive.json', '.cursor/ucore-hooks/',
-    '.vscode/session-archive.json', '.vscode/ucore-hooks/',
-    '.github/hooks/ucore-session-archive.json',
-)
-BUNDLE_FILES = ('course.py', '.course-monitor', 'plugins/ucore-session-archive',
-                'scripts', '.agents/plugins/marketplace.json', '.claude-plugin/marketplace.json')
+
+def local_paths(profile):
+    hooks = profile['project'] + '-hooks/'
+    return (
+        '.ai/course-tools/', '.ai/ide/',
+        '.codex/config.toml', '.codex/session-archive.json',
+        '.claude/settings.json', '.claude/settings.local.json', '.claude/session-archive.json',
+        '.cursor/hooks.json', '.cursor/session-archive.json', '.cursor/' + hooks,
+        '.vscode/session-archive.json', '.vscode/' + hooks,
+        '.github/hooks/' + profile['plugin_name'] + '.json',
+    )
+
+
+def bundle_files(profile):
+    return ('course.py', 'course-profile.json', '.course-monitor', 'plugins/' + profile['plugin_name'],
+            'scripts', '.agents/plugins/marketplace.json', '.claude-plugin/marketplace.json')
 
 
 def project_root(bundle):
@@ -58,14 +66,17 @@ def install_runtime(bundle, root=None):
     root = project_root(bundle) if root is None else Path(root).resolve()
     if Path(git(root, 'rev-parse', '--show-toplevel')).resolve() != root:
         raise ValueError('请在实验仓库根目录安装记录工具。')
+    profile = load_profile(bundle)
+    validate_distribution(bundle, profile)
+    setup_path = Path('plugins') / profile['plugin_name'] / 'scripts/setup_agents.py'
     runtime = root / RUNTIME_PATH
     ordinary_path(root, runtime)
     if bundle != runtime:
         copies = []
-        for name in BUNDLE_FILES:
+        for name in bundle_files(profile):
             source = bundle / name
             if not source.exists():
-                raise ValueError('记录工具文件缺失，请从 main 分支安装：' + name)
+                raise ValueError('记录工具文件缺失，请从 ' + profile['bootstrap_branch'] + ' 分支安装：' + name)
             for path in sorted(source.rglob('*')) if source.is_dir() else [source]:
                 if path.is_symlink():
                     raise ValueError('记录工具源文件不能是符号链接：' + str(path))
@@ -79,8 +90,8 @@ def install_runtime(bundle, root=None):
                 copies.append((path, destination))
         for source, destination in copies:
             write_file(destination, source.read_bytes(), 0o700 if source.stat().st_mode & 0o111 else 0o600)
-    if not (runtime / 'plugins/ucore-session-archive/scripts/setup_agents.py').is_file():
-        raise ValueError('归档插件运行文件不完整，请从 main 分支重新安装。')
+    if not (runtime / setup_path).is_file():
+        raise ValueError('归档插件运行文件不完整，请从 ' + profile['bootstrap_branch'] + ' 分支重新安装。')
     exclude = Path(git(root, 'rev-parse', '--git-path', 'info/exclude'))
     if not exclude.is_absolute():
         exclude = root / exclude
@@ -93,7 +104,7 @@ def install_runtime(bundle, root=None):
                    if line.rstrip('\r\n') not in record_patterns)
     # Source-side caches remain after main's tracked Python files are checked out.
     # Keep these patterns unanchored so they cover caches at any directory depth.
-    patterns = ['/' + name for name in LOCAL_PATHS] + ['__pycache__/', '*.py[cod]']
+    patterns = ['/' + name for name in local_paths(profile)] + ['__pycache__/', '*.py[cod]']
     missing = [pattern for pattern in patterns if pattern not in text.splitlines()]
     if missing:
         text += '\n' if text and not text.endswith('\n') else ''
@@ -103,7 +114,7 @@ def install_runtime(bundle, root=None):
         write_file(exclude, text.encode('utf-8'))
     aliases = {
         'course': [sys.executable, str(RUNTIME_PATH / 'course.py')],
-        'agent-plugins': [sys.executable, str(RUNTIME_PATH / 'plugins/ucore-session-archive/scripts/setup_agents.py')],
+        'agent-plugins': [sys.executable, str(RUNTIME_PATH / setup_path)],
     }
     for name, command in aliases.items():
         git(root, 'config', '--local', 'alias.' + name, '!' + shlex.join(command))

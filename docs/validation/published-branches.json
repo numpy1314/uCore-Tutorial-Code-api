@@ -1,0 +1,69 @@
+{
+  "repository": "numpy1314/uCore-Tutorial-Code-api",
+  "branches": {
+    "ch1-api": {
+      "sha": "13e2726f8003121c65170f9ba2d7d1b6136b78d1",
+      "tree": "f15c1b8374b26f563c168a9aeaf4ebf4f8257019"
+    },
+    "ch1-api-impl": {
+      "sha": "536a0f82c7a30521ba2f28b6da13b7f05735e864",
+      "tree": "942e56c9de3efe35d67cc5145bab811b4de3cd76"
+    },
+    "ch2-api": {
+      "sha": "259de5303395159cc057575429739efa43b263cc",
+      "tree": "aa283bcd62a2b52b09e43bd4d90fe29ea514d13a"
+    },
+    "ch2-api-impl": {
+      "sha": "940e471bbb066fc9bcd9cdc3ba39a95ce3b54046",
+      "tree": "688413e61fdc5248c34321ba9f2c622797355324"
+    },
+    "ch3-api": {
+      "sha": "cad4c379728aefefbe82ed239560d2c724929592",
+      "tree": "82a8791cd74a3f27ba74a26c0a98e62280706778"
+    },
+    "ch3-api-impl": {
+      "sha": "13f82ce4b642bff1d9bf46a7581f9c37705f4083",
+      "tree": "83c15baacfa6ec1be217666572437b8df80694cd"
+    },
+    "ch4-api": {
+      "sha": "d390888120c3c122bb60f1a31e5a1f98afcdb4e1",
+      "tree": "3fc0eea4aabebd5736e8c7b6a900a7477d811523"
+    },
+    "ch4-api-impl": {
+      "sha": "6e91a31a6d6c3ffadefab6c88a57349a3107c387",
+      "tree": "3142879225fe22901132a45af7e5e6ca316b8754"
+    },
+    "ch5-api": {
+      "sha": "1c38f7adcc614e501a8d856eb4d4089787896dd6",
+      "tree": "fee8659e929d61b5703830e477d0048040fce3ad"
+    },
+    "ch5-api-impl": {
+      "sha": "8d22754749e3288be85eaf5f99a10e06c4c6bc84",
+      "tree": "31d776c31377f1fa97891aa2afca6cbbe1fc35d1"
+    },
+    "ch6-api": {
+      "sha": "df51954015d7571f4ec2ea3147782df825cdeb23",
+      "tree": "b86fc5fcc9f74403f55fe2d69c04989932f940de"
+    },
+    "ch6-api-impl": {
+      "sha": "4df5e1218d431d16bea04cf93712e0ded5f786be",
+      "tree": "271dae8edfba620b6ae38151b3fa601add0a8a3c"
+    },
+    "ch7-api": {
+      "sha": "b757769f5f1d80ce583f9c691ab0d584149c9a46",
+      "tree": "716153fc472bcb4572aa4018613582d32ce22e18"
+    },
+    "ch7-api-impl": {
+      "sha": "c921ad7ccc768640de39ff29b27d66f69f7e9fc1",
+      "tree": "3bbb6732b124e49c74a0b91f5421e7d1b0413fd7"
+    },
+    "ch8-api": {
+      "sha": "ae5fd460499f9c771435b780cd3eaa4cebce732a",
+      "tree": "abbfa735b98456149ee906acd8d99e3a55f9d49b"
+    },
+    "ch8-api-impl": {
+      "sha": "c0b64d4421a30a085f6b9739d96fb7bcfb7504c2",
+      "tree": "51b20f91ec4c61125e1436513211829953f50bd5"
+    }
+  }
+}

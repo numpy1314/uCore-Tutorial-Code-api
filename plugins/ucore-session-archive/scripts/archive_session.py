@@ -85,7 +85,7 @@ def read_archive_config(repository_root: Path, agent_name: str) -> Optional[Dict
         return None
     except (OSError, UnicodeError, json.JSONDecodeError):
         print(
-            "ucore-session-archive: 无法读取项目归档配置，已跳过本次归档。",
+            "session-archive: 无法读取项目归档配置，已跳过本次归档。",
             file=sys.stderr,
         )
         return None
@@ -94,7 +94,7 @@ def read_archive_config(repository_root: Path, agent_name: str) -> Optional[Dict
     mode = config.get("mode", MODE_MESSAGES)
     if not isinstance(mode, str) or mode not in SUPPORTED_MODES:
         print(
-            "ucore-session-archive: 归档等级无效，使用 messages。",
+            "session-archive: 归档等级无效，使用 messages。",
             file=sys.stderr,
         )
         mode = MODE_MESSAGES
@@ -616,7 +616,7 @@ def main() -> int:
             raise ValueError("hook input must be a JSON object")
         archive_transcript(payload)
     except Exception as error:
-        print(f"ucore-session-archive: hook 未完成（{type(error).__name__}），请检查配置与源会话文件。", file=sys.stderr)
+        print(f"session-archive: hook 未完成（{type(error).__name__}），请检查配置与源会话文件。", file=sys.stderr)
     return 0
 
 
