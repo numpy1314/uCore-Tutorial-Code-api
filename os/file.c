@@ -114,12 +114,7 @@ int fileopen(char *path, uint64 omode)
 	}
 	if (ip->type != T_FILE)
 		panic("unsupported file inode type\n");
-	if ((f = filealloc()) == 0 ||
-	    (fd = fdalloc(f)) <
-		    0) { //Assign a system-level table entry to a newly created or opened file
-		//and then create a file descriptor that points to it
-		if (f)
-			fileclose(f);
+	if ((f = filealloc()) == 0) {
 		iput(ip);
 		return -1;
 	}
@@ -129,6 +124,11 @@ int fileopen(char *path, uint64 omode)
 	f->ip = ip;
 	f->readable = !(omode & O_WRONLY);
 	f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
+	// Initialize the file before publishing it or releasing it on failure.
+	if ((fd = fdalloc(f)) < 0) {
+		fileclose(f);
+		return -1;
+	}
 	if ((omode & O_TRUNC) && ip->type == T_FILE) {
 		itrunc(ip);
 	}
